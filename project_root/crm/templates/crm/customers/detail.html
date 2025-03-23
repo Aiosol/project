@@ -1,0 +1,288 @@
+{% extends 'crm/base.html' %}
+{% load static %}
+
+{% block title %}Customer: {{ customer.user.get_full_name }}{% endblock %}
+
+{% block page_title %}Customer: {{ customer.user.get_full_name }}{% endblock %}
+
+{% block header_buttons %}
+<a href="{% url 'crm:customer_list' %}" class="btn btn-sm btn-outline-secondary me-2">
+    <i class="fas fa-arrow-left"></i> Back to Customers
+</a>
+<button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editCustomerModal">
+    <i class="fas fa-edit"></i> Edit
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Customer Information -->
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Customer Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-circle fa-7x text-gray-300 mb-3"></i>
+                    <h4>{{ customer.user.get_full_name }}</h4>
+                    <span class="badge bg-{% if customer.customer_type == 'regular' %}secondary{% elif customer.customer_type == 'vip' %}primary{% else %}success{% endif %}">
+                        {{ customer.get_customer_type_display }}
+                    </span>
+                </div>
+                
+                <div class="mb-4">
+                    <p><strong>Email:</strong> {{ customer.user.email }}</p>
+                    <p><strong>Phone:</strong> {{ customer.user.phone }}</p>
+                    <p><strong>Joined:</strong> {{ customer.user.date_joined|date:"F d, Y" }}</p>
+                </div>
+                
+                <hr>
+                
+                <div class="row text-center mb-4">
+                    <div class="col-4">
+                        <h5>{{ customer.total_orders }}</h5>
+                        <small class="text-muted">Orders</small>
+                    </div>
+                    <div class="col-8">
+                        <h5>৳{{ customer.lifetime_value|floatformat:2 }}</h5>
+                        <small class="text-muted">Lifetime Value</small>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="mb-3">
+                    <h6 class="font-weight-bold">Communication Preferences</h6>
+                    <p>
+                        <i class="fas fa-envelope {% if customer.email_opt_in %}text-success{% else %}text-danger{% endif %}"></i>
+                        Email Marketing: {% if customer.email_opt_in %}Subscribed{% else %}Unsubscribed{% endif %}
+                    </p>
+                    <p>
+                        <i class="fas fa-sms {% if customer.sms_opt_in %}text-success{% else %}text-danger{% endif %}"></i>
+                        SMS Notifications: {% if customer.sms_opt_in %}Subscribed{% else %}Unsubscribed{% endif %}
+                    </p>
+                </div>
+                
+                <hr>
+                
+                <div class="mb-3">
+                    <h6 class="font-weight-bold">Notes</h6>
+                    {% if customer.notes %}
+                    <p>{{ customer.notes }}</p>
+                    {% else %}
+                    <p class="text-muted">No notes available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Customer Orders -->
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Order History</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="ordersTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Date</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td>#{{ order.id }}</td>
+                                <td>{{ order.created_at|date:"M d, Y" }}</td>
+                                <td>৳{{ order.total_amount|floatformat:2 }}</td>
+                                <td>
+                                    <span class="badge" style="background-color: {{ order.status.color_code }}">
+                                        {{ order.status.name }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'crm:order_detail' order.id %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">No orders yet</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Customer Metrics -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Customer Metrics</h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Purchase Statistics</h5>
+                                <p><strong>Total Spent:</strong> ৳{{ total_spent|floatformat:2 }}</p>
+                                <p><strong>Average Order Value:</strong> ৳{{ avg_order_value|floatformat:2 }}</p>
+                                <p><strong>Last Purchase:</strong> 
+                                    {% if customer.last_purchase_date %}
+                                    {{ customer.last_purchase_date|date:"F d, Y" }}
+                                    {% else %}
+                                    Never
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Customer Engagement</h5>
+                                <p><strong>Purchase Frequency:</strong> {{ purchase_frequency|floatformat:1 }} days</p>
+                                <p><strong>Days Since Last Order:</strong> {{ days_since_last_order }}</p>
+                                <p><strong>Customer Status:</strong> 
+                                    {% if days_since_last_order <= 30 %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% elif days_since_last_order <= 90 %}
+                                    <span class="badge bg-warning">At Risk</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="customerOrdersChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Customer Modal -->
+<div class="modal fade" id="editCustomerModal" tabindex="-1" aria-labelledby="editCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCustomerModalLabel">Edit Customer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="customerType" class="form-label">Customer Type</label>
+                        <select class="form-select" id="customerType">
+                            <option value="regular" {% if customer.customer_type == 'regular' %}selected{% endif %}>Regular</option>
+                            <option value="vip" {% if customer.customer_type == 'vip' %}selected{% endif %}>VIP</option>
+                            <option value="wholesale" {% if customer.customer_type == 'wholesale' %}selected{% endif %}>Wholesale</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="emailOptIn" class="form-check-label">Email Marketing</label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="emailOptIn" {% if customer.email_opt_in %}checked{% endif %}>
+                            <label class="form-check-label" for="emailOptIn">Subscribed</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="smsOptIn" class="form-check-label">SMS Notifications</label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="smsOptIn" {% if customer.sms_opt_in %}checked{% endif %}>
+                            <label class="form-check-label" for="smsOptIn">Subscribed</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customerNotes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="customerNotes" rows="3">{{ customer.notes }}</textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#ordersTable').DataTable({
+            order: [[1, 'desc']]  // Sort by date descending
+        });
+        
+        // Customer orders chart
+        var ctx = document.getElementById('customerOrdersChart').getContext('2d');
+        var customerOrdersChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [{% for order in orders|dictsortreversed:"created_at"|slice:":6" %}'{{ order.created_at|date:"M Y" }}',{% endfor %}],
+                datasets: [{
+                    label: 'Order Amount',
+                    data: [{% for order in orders|dictsortreversed:"created_at"|slice:":6" %}{{ order.total_amount }},{% endfor %}],
+                    backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                    borderColor: 'rgba(78, 115, 223, 1)',
+                    pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(78, 115, 223, 1)',
+                    borderWidth: 2,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '৳' + value.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Recent Order History'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += '৳' + context.parsed.y.toLocaleString();
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

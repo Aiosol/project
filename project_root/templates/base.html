@@ -1,0 +1,180 @@
+{% load static %}
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Bangladesh Clothing Shop{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Header/Navbar -->
+    <header class="mb-4">
+        <!-- Top Header with Logo, Search, and Icons -->
+        <div class="container my-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body py-3">
+                    <div class="row align-items-center">
+                        <!-- Logo -->
+                        <div class="col-md-3">
+                            <a class="navbar-brand" href="{% url 'home' %}">
+                                <img src="{% static 'images/logo.png' %}" alt="Bangladesh Clothing Shop" height="40" width="40">
+                            </a>
+                        </div>
+                        <!-- Search Bar -->
+                        <div class="col-md-6">
+                            <form class="d-flex">
+                                <input class="form-control" type="search" placeholder="Search for products...">
+                                <button class="btn btn-outline-dark ms-2" type="submit">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </form>
+                        </div>
+                        <!-- Icons -->
+                        <div class="col-md-3 d-flex justify-content-end gap-4">
+                            <a href="#" class="text-dark fs-4" data-bs-toggle="tooltip" title="Wishlist">
+                                <i class="bi bi-heart"></i>
+                            </a>
+                            <a href="{% url 'cart:cart_detail' %}" class="cart-icon position-relative me-3">
+                                <i class="bi bi-cart3 fs-4"></i>
+                                {% if request.cart.total_items > 0 %}
+                                    <span class="cart-count position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                        {{ request.cart.total_items }}
+                                    </span>
+                                {% else %}
+                                    <span class="cart-count position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">
+                                        0
+                                    </span>
+                                {% endif %}
+                            </a>
+                            <!-- Account Dropdown -->
+                            <div class="dropdown">
+                                <button class="btn btn-link text-dark fs-4 p-0 dropdown-toggle" type="button" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="text-decoration: none;">
+                                    <i class="bi bi-person"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
+                                    {% if user.is_authenticated %}
+                                        <li><h6 class="dropdown-header">Hello, {{ user.first_name }}!</h6></li>
+                                        <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">My Profile</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'accounts:address_list' %}">My Addresses</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'orders:history' %}">My Orders</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">Logout</a></li>
+                                    {% else %}
+                                        <li><a class="dropdown-item" href="{% url 'accounts:login' %}">Login</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'accounts:register' %}">Register</a></li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Category Navigation -->
+        <div class="border-top border-bottom py-2">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="category-dropdown">
+                            <button class="btn d-flex align-items-center ps-0" type="button">
+                                <i class="bi bi-list me-2"></i>
+                                <span class="fw-medium">Shop By Category</span>
+                            </button>
+                            <div class="category-menu">
+                                <ul class="list-unstyled mb-0">
+                                    <li>
+                                        <a href="#" class="d-flex justify-content-between align-items-center">
+                                            Clothing & Fashion
+                                            <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#" class="d-flex justify-content-between align-items-center">
+                                            Footwear
+                                            <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="#" class="d-flex justify-content-between align-items-center">
+                                            Fashion Accessories
+                                            <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <nav class="nav justify-content-end">
+                            <a class="nav-link text-dark" href="{% url 'home' %}">Home</a>
+                            <a class="nav-link text-dark" href="#">About</a>
+                            <a class="nav-link text-dark" href="#">Contact</a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container py-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Bangladesh Clothing Shop</h5>
+                    <p>Your trusted destination for high-quality clothing and accessories in Bangladesh.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white">About Us</a></li>
+                        <li><a href="#" class="text-white">Terms & Conditions</a></li>
+                        <li><a href="#" class="text-white">Privacy Policy</a></li>
+                        <li><a href="#" class="text-white">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contact Information</h5>
+                    <address>
+                        <p>123 Dhaka Road,<br>Dhaka, Bangladesh</p>
+                        <p>Email: info@bdclothingshop.com<br>Phone: +880 12345 67890</p>
+                    </address>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12 text-center">
+                    <p class="mb-0">&copy; {% now "Y" %} Bangladesh Clothing Shop. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'js/main.js' %}"></script>
+    <script src="{% static 'js/product-actions.js' %}"></script>
+    <script src="{% static 'js/cart.js' %}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

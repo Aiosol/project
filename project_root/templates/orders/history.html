@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <!-- Sidebar with navigation -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">My Account</h5>
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'accounts:profile' %}" class="list-group-item list-group-item-action">Profile</a>
+                        <a href="{% url 'accounts:address_list' %}" class="list-group-item list-group-item-action">Addresses</a>
+                        <a href="{% url 'orders:history' %}" class="list-group-item list-group-item-action active">Orders</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main content -->
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">My Orders</h3>
+                    
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if orders %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Order #</th>
+                                        <th>Date</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Payment</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders %}
+                                    <tr>
+                                        <td>{{ order.order_number }}</td>
+                                        <td>{{ order.created_at|date:"M d, Y" }}</td>
+                                        <td>৳{{ order.total_amount }}</td>
+                                        <td>
+                                            {% if order.status == 'pending' %}
+                                                <span class="badge bg-warning text-dark">Pending</span>
+                                            {% elif order.status == 'processing' %}
+                                                <span class="badge bg-info">Processing</span>
+                                            {% elif order.status == 'shipped' %}
+                                                <span class="badge bg-primary">Shipped</span>
+                                            {% elif order.status == 'delivered' %}
+                                                <span class="badge bg-success">Delivered</span>
+                                            {% elif order.status == 'cancelled' %}
+                                                <span class="badge bg-danger">Cancelled</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if order.is_paid %}
+                                                <span class="badge bg-success">Paid</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Unpaid</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'orders:confirmation' order.id %}" class="btn btn-sm btn-outline-primary">
+                                                View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-bag display-1 text-muted mb-3"></i>
+                            <h4>No orders yet</h4>
+                            <p class="text-muted">You haven't placed any orders yet.</p>
+                            <a href="{% url 'home' %}" class="btn btn-primary mt-2">Start Shopping</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

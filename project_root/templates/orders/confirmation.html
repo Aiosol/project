@@ -1,0 +1,52 @@
+<!-- templates/orders/confirmation.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body order-success">
+                    <div class="success-icon animate-fadeInUp">
+                        <i class="bi bi-check-circle-fill text-success display-1"></i>
+                    </div>
+                    <h2 class="mb-4 animate-fadeInUp" style="animation-delay: 0.1s;">Thank You for Your Order!</h2>
+                    <p class="lead mb-4 animate-fadeInUp" style="animation-delay: 0.2s;">Your order has been received and is being processed.</p>
+                    
+                    <div class="order-info-card animate-fadeInUp" style="animation-delay: 0.3s;">
+                        <div class="row">
+                            <div class="col-md-6 text-md-start text-center mb-3 mb-md-0">
+                                <h5 class="text-muted">Order Number</h5>
+                                <p class="fs-5 fw-bold">{{ order.order_number }}</p>
+                            </div>
+                            <div class="col-md-6 text-md-start text-center">
+                                <h5 class="text-muted">Order Date</h5>
+                                <p class="fs-5 fw-bold">{{ order.created_at|date:"F j, Y" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p class="animate-fadeInUp" style="animation-delay: 0.4s;">
+                        A confirmation email has been sent to <strong>{{ order.email }}</strong>
+                    </p>
+                    
+                    <div class="d-flex justify-content-between animate-fadeInUp" style="animation-delay: 0.5s;">
+                        <a href="{% url 'home' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-house-door me-1"></i> Continue Shopping
+                        </a>
+                        
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'orders:history' %}" class="btn btn-primary">
+                            <i class="bi bi-list-ul me-1"></i> View Order History
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

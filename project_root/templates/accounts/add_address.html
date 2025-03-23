@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.id %}Edit{% else %}Add{% endif %} Address{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <!-- Sidebar with navigation -->
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">My Account</h5>
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'accounts:profile' %}" class="list-group-item list-group-item-action">Profile</a>
+                        <a href="{% url 'accounts:address_list' %}" class="list-group-item list-group-item-action active">Addresses</a>
+                        <a href="{% url 'orders:history' %}" class="list-group-item list-group-item-action">Orders</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main content -->
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">{% if form.instance.id %}Edit{% else %}Add New{% endif %} Address</h3>
+                    
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.address_type.id_for_label }}" class="form-label">Address Type*</label>
+                            <select name="address_type" id="{{ form.address_type.id_for_label }}" class="form-select" required>
+                                <option value="shipping" {% if form.address_type.value == 'shipping' %}selected{% endif %}>Shipping Address</option>
+                                <option value="billing" {% if form.address_type.value == 'billing' %}selected{% endif %}>Billing Address</option>
+                            </select>
+                            {% if form.address_type.errors %}
+                                <div class="text-danger">
+                                    {{ form.address_type.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.full_name.id_for_label }}" class="form-label">Full Name*</label>
+                            <input type="text" name="full_name" id="{{ form.full_name.id_for_label }}" class="form-control" value="{{ form.full_name.value|default:'' }}" required>
+                            {% if form.full_name.errors %}
+                                <div class="text-danger">
+                                    {{ form.full_name.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.phone.id_for_label }}" class="form-label">Phone Number*</label>
+                            <input type="tel" name="phone" id="{{ form.phone.id_for_label }}" class="form-control" value="{{ form.phone.value|default:'' }}" required>
+                            {% if form.phone.errors %}
+                                <div class="text-danger">
+                                    {{ form.phone.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.address_line_1.id_for_label }}" class="form-label">Address Line 1*</label>
+                            <input type="text" name="address_line_1" id="{{ form.address_line_1.id_for_label }}" class="form-control" value="{{ form.address_line_1.value|default:'' }}" required>
+                            {% if form.address_line_1.errors %}
+                                <div class="text-danger">
+                                    {{ form.address_line_1.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.address_line_2.id_for_label }}" class="form-label">Address Line 2</label>
+                            <input type="text" name="address_line_2" id="{{ form.address_line_2.id_for_label }}" class="form-control" value="{{ form.address_line_2.value|default:'' }}" placeholder="Apartment, suite, unit, etc. (optional)">
+                            {% if form.address_line_2.errors %}
+                                <div class="text-danger">
+                                    {{ form.address_line_2.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label for="{{ form.city.id_for_label }}" class="form-label">City*</label>
+                                <input type="text" name="city" id="{{ form.city.id_for_label }}" class="form-control" value="{{ form.city.value|default:'' }}" required>
+                                {% if form.city.errors %}
+                                    <div class="text-danger">
+                                        {{ form.city.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="{{ form.postal_code.id_for_label }}" class="form-label">Postal Code*</label>
+                                <input type="text" name="postal_code" id="{{ form.postal_code.id_for_label }}" class="form-control" value="{{ form.postal_code.value|default:'' }}" required>
+                                {% if form.postal_code.errors %}
+                                    <div class="text-danger">
+                                        {{ form.postal_code.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" name="is_default" id="{{ form.is_default.id_for_label }}" class="form-check-input" {% if form.is_default.value %}checked{% endif %}>
+                            <label for="{{ form.is_default.id_for_label }}" class="form-check-label">Set as default address for this type</label>
+                            {% if form.is_default.errors %}
+                                <div class="text-danger">
+                                    {{ form.is_default.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'accounts:address_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if form.instance.id %}Update{% else %}Save{% endif %} Address
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

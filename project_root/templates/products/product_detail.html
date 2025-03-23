@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<!-- Add this hidden form for CSRF token -->
+<form id="csrf_form" style="display:none">
+    {% csrf_token %}
+</form>
+
+<div class="container my-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="#">{{ product.category.name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Product Images -->
+        <div class="col-md-6 mb-4">
+            <div class="product-images">
+                {% with main_image=product.images.first %}
+                <div class="main-image-container mb-3">
+                    {% if main_image %}
+                    <img src="{{ main_image.image.url }}" alt="{{ product.name }}" class="img-fluid main-product-image">
+                    {% else %}
+                    <img src="{% static 'images/no-image.png' %}" alt="No Image Available" class="img-fluid main-product-image">
+                    {% endif %}
+                </div>
+                {% endwith %}
+                
+                <div class="thumbnail-container d-flex">
+                    {% for image in product.images.all %}
+                    <div class="thumbnail-item me-2">
+                        <img src="{{ image.image.url }}" alt="{{ product.name }}" class="img-thumbnail thumbnail-image" 
+                             onclick="document.querySelector('.main-product-image').src = this.src">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Product Details -->
+        <div class="col-md-6">
+            <h1 class="mb-3">{{ product.name }}</h1>
+            
+            {% if product.discount_price %}
+            <div class="product-price mb-3">
+                <span class="text-muted text-decoration-line-through fs-5">৳{{ product.price }}</span>
+                <span class="fw-bold text-danger fs-3">৳{{ product.discount_price }}</span>
+            </div>
+            {% else %}
+            <div class="product-price mb-3">
+                <span class="fw-bold fs-3">৳{{ product.price }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="product-description mb-4">
+                <h5>Description</h5>
+                <p>{{ product.description|linebreaks }}</p>
+            </div>
+            
+            {% if variants %}
+            <div class="product-variants mb-4">
+                <h5>Variants</h5>
+                <div class="variants-container">
+                    <select class="form-select mb-3" id="variant-selector">
+                        {% for variant in variants %}
+                        <option value="{{ variant.id }}">
+                            {{ variant.size }}{% if variant.color %} - {{ variant.color }}{% endif %}
+                            {% if variant.in_stock %}(In Stock){% else %}(Out of Stock){% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="quantity-selector mb-4">
+                <h5>Quantity</h5>
+                <div class="input-group" style="width: 130px;">
+                    <button class="btn btn-outline-secondary" type="button" id="decrease-qty">-</button>
+                    <input type="number" class="form-control text-center" value="1" min="1" id="quantity">
+                    <button class="btn btn-outline-secondary" type="button" id="increase-qty">+</button>
+                </div>
+            </div>
+            
+            <div class="product-actions d-flex mb-4">
+                <!-- Updated Add to Cart button with proper data attribute -->
+                <button class="btn btn-primary me-2 px-4 py-2" id="add-to-cart-btn" 
+                        data-variant-id="{% if variants %}{{ variants.0.id }}{% else %}{{ product.id }}{% endif %}">
+                    <i class="bi bi-cart-plus me-1"></i>Add to Cart
+                </button>
+                <form method="post" action="{% url 'products:buy_now' product.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="quantity" id="buy_now_quantity" value="1">
+                    <button type="submit" class="btn btn-success px-4 py-2">Buy Now</button>
+                </form>
+                <button class="btn btn-outline-secondary ms-2" id="add-to-wishlist" data-product-id="{{ product.id }}">
+                    <i class="bi bi-heart"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    {% if related_products %}
+    <section class="related-products mt-5">
+        <h3 class="mb-4">Related Products</h3>
+        <div class="row g-4">
+            {% for related in related_products %}
+            <div class="col-md-3 col-sm-6">
+                <div class="card product-card h-100">
+                    <div class="product-image-container">
+                        <a href="{% url 'products:product_detail' related.slug %}">
+                            {% with product_image=related.images.first %}
+                            {% if product_image %}
+                            <img src="{{ product_image.image.url }}" class="card-img-top" alt="{{ related.name }}">
+                            {% else %}
+                            <img src="{% static 'images/no-image.png' %}" class="card-img-top" alt="No Image Available">
+                            {% endif %}
+                            {% endwith %}
+                        </a>
+                        <button class="btn wishlist-btn" data-product-id="{{ related.id }}">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title product-title">
+                            <a href="{% url 'products:product_detail' related.slug %}" class="text-decoration-none text-dark">
+                                {{ related.name }}
+                            </a>
+                        </h5>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            {% if related.discount_price %}
+                            <p class="card-text mb-0">
+                                <span class="text-muted text-decoration-line-through">৳{{ related.price }}</span>
+                                <span class="fw-bold text-danger">৳{{ related.discount_price }}</span>
+                            </p>
+                            {% else %}
+                            <p class="card-text fw-bold mb-0">৳{{ related.price }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+<script>
+    // Quantity selector functionality
+    document.getElementById('decrease-qty').addEventListener('click', function() {
+        const input = document.getElementById('quantity');
+        const value = parseInt(input.value);
+        if (value > 1) {
+            input.value = value - 1;
+        }
+    });
+    
+    document.getElementById('increase-qty').addEventListener('click', function() {
+        const input = document.getElementById('quantity');
+        input.value = parseInt(input.value) + 1;
+    });
+    
+    // Add to cart functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Log for debugging
+        console.log('Product detail page loaded');
+        
+        // Update variant ID when variant selector changes
+        const variantSelector = document.getElementById('variant-selector');
+        if (variantSelector) {
+            variantSelector.addEventListener('change', function() {
+                const addToCartBtn = document.getElementById('add-to-cart-btn');
+                if (addToCartBtn) {
+                    addToCartBtn.setAttribute('data-variant-id', this.value);
+                    console.log('Changed variant ID to:', this.value);
+                }
+            });
+        }
+        
+        // Add to cart functionality
+        const addToCartBtn = document.getElementById('add-to-cart-btn');
+        if (addToCartBtn) {
+            console.log('Add to cart button found');
+            
+            addToCartBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('Add to cart button clicked');
+                
+                const variantId = this.getAttribute('data-variant-id');
+                const quantityInput = document.getElementById('quantity');
+                const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+                
+                console.log('Adding to cart:', {
+                    variantId: variantId,
+                    quantity: quantity
+                });
+                
+                // Get CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                console.log('CSRF token found:', !!csrfToken);
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('quantity', quantity);
+                
+                // Send AJAX request
+                fetch(`/cart/add/${variantId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: formData
+                })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response data:', data);
+                    if (data.success) {
+                        alert(data.message);
+                        
+                        // Update cart count in header
+                        const cartCount = document.querySelector('.cart-count');
+                        if (cartCount) {
+                            cartCount.textContent = data.cart_total;
+                            cartCount.style.display = data.cart_total > 0 ? 'inline-block' : 'none';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('There was an error adding the item to your cart. Please try again.');
+                });
+            });
+        } else {
+            console.error('Add to cart button not found');
+        }
+    });
+
+
+
+    // Update hidden quantity field when quantity selector changes
+    document.getElementById('quantity').addEventListener('change', function() {
+        document.getElementById('buy_now_quantity').value = this.value;
+    });
+</script>
+{% endblock %}

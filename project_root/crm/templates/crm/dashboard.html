@@ -1,0 +1,303 @@
+{% extends 'crm/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .metric-card {
+        transition: transform 0.3s;
+    }
+    .metric-card:hover {
+        transform: translateY(-5px);
+    }
+    .chart-container {
+        height: 300px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">Dashboard</h1>
+    <div>
+        <button class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-calendar"></i> {{ today|date:"F d, Y" }}
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Sales summary cards -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2 metric-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Today's Sales</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">৳{{ today_sales|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2 metric-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Monthly Sales</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">৳{{ monthly_sales|floatformat:2 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2 metric-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Pending Orders</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_orders }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2 metric-card">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Low Stock Products</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ low_stock_products }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Sales Chart -->
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Sales Overview</h6>
+                <div class="dropdown no-arrow">
+                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                        aria-labelledby="dropdownMenuLink">
+                        <div class="dropdown-header">View Options:</div>
+                        <a class="dropdown-item" href="#" data-period="weekly">Weekly</a>
+                        <a class="dropdown-item" href="#" data-period="monthly">Monthly</a>
+                        <a class="dropdown-item" href="#" data-period="yearly">Yearly</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Targets -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Active Sales Targets</h6>
+            </div>
+            <div class="card-body">
+                {% if active_targets %}
+                    {% for target in active_targets %}
+                    <h4 class="small font-weight-bold">{{ target.name }} 
+                        <span class="float-end">{{ target.get_progress_percentage }}%</span>
+                    </h4>
+                    <div class="progress mb-4">
+                        <div class="progress-bar {% if target.get_progress_percentage < 50 %}bg-danger{% elif target.get_progress_percentage < 75 %}bg-warning{% else %}bg-success{% endif %}" 
+                            role="progressbar" style="width: {{ target.get_progress_percentage }}%"
+                            aria-valuenow="{{ target.get_progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center">No active sales targets</p>
+                    {% if request.crm_user.role == 'admin' or request.crm_user.role == 'manager' %}
+                    <div class="text-center mt-3">
+                        <a href="{% url 'crm:create_sales_target' %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus-circle"></i> Create Target
+                        </a>
+                    </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Orders -->
+    <div class="col-lg-12 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Orders</h6>
+                <a href="{% url 'crm:order_list' %}" class="btn btn-sm btn-primary">
+                    View All
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td>#{{ order.id }}</td>
+                                <td>{{ order.customer.user.get_full_name }}</td>
+                                <td>{{ order.created_at|date:"M d, Y" }}</td>
+                                <td>৳{{ order.total_amount|floatformat:2 }}</td>
+                                <td>
+                                    <span class="badge" style="background-color: {{ order.status.color_code }}">
+                                        {{ order.status.name }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'crm:order_detail' order.id %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center">No recent orders</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Sales Chart
+    var ctx = document.getElementById('salesChart').getContext('2d');
+    var salesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [{% for data in sales_data %}'{{ data.month }}',{% endfor %}],
+            datasets: [{
+                label: 'Sales',
+                data: [{% for data in sales_data %}{{ data.sales }},{% endfor %}],
+                backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                borderColor: 'rgba(78, 115, 223, 1)',
+                pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgba(78, 115, 223, 1)',
+                borderWidth: 2,
+                tension: 0.3
+            }]
+        },
+        options: {
+            maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    left: 10,
+                    right: 25,
+                    top: 25,
+                    bottom: 0
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false,
+                        drawBorder: false
+                    }
+                },
+                y: {
+                    ticks: {
+                        beginAtZero: true,
+                        callback: function(value) {
+                            return '৳' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            var label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += '৳' + context.parsed.y.toLocaleString();
+                            }
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Period dropdown handlers
+    document.querySelectorAll('[data-period]').forEach(function(element) {
+        element.addEventListener('click', function(e) {
+            e.preventDefault();
+            // This would typically load new data via AJAX
+            fetch(`/crm/api/sales-data/?period=${this.dataset.period}`)
+                .then(response => response.json())
+                .then(data => {
+                    salesChart.data.labels = data.labels;
+                    salesChart.data.datasets[0].data = data.values;
+                    salesChart.update();
+                })
+                .catch(error => console.error('Error fetching sales data:', error));
+        });
+    });
+</script>
+{% endblock %}

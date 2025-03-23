@@ -1,0 +1,270 @@
+{% extends 'crm/base.html' %}
+{% load static %}
+
+{% block title %}Order #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3">Order #{{ order.id }}</h1>
+    <div>
+        <a href="{% url 'crm:order_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Orders
+        </a>
+        <button type="button" class="btn btn-outline-primary" onclick="window.print();">
+            <i class="fas fa-print"></i> Print
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Order Information -->
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Order Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y H:i" }}</p>
+                        <p><strong>Customer:</strong> {{ order.customer.user.get_full_name }}</p>
+                        <p><strong>Email:</strong> {{ order.customer.user.email }}</p>
+                        <p><strong>Phone:</strong> {{ order.customer.user.phone|default:"Not provided" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+                        <p><strong>Payment Status:</strong> {{ order.payment_status|default:"Unknown" }}</p>
+                        <p><strong>Shipping Method:</strong> {{ order.shipping_method|default:"Standard Shipping" }}</p>
+                        <p><strong>Tracking Number:</strong> {{ order.tracking_number|default:"Not available" }}</p>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold">Shipping Address</h6>
+                        <address>
+                            {{ order.shipping_address|linebreaks }}
+                        </address>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold">Billing Address</h6>
+                        <address>
+                            {{ order.billing_address|default:order.shipping_address|linebreaks }}
+                        </address>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Items -->
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Order Items</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Variant</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items.all %}
+                            <tr>
+                                <td>
+                                    {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="img-thumbnail" style="width: 50px;">
+                                    {% endif %}
+                                    {{ item.product.name }}
+                                </td>
+                                <td>
+                                    {% if item.variant %}
+                                    {{ item.variant.name }}
+                                    {% else %}
+                                    N/A
+                                    {% endif %}
+                                </td>
+                                <td>৳{{ item.price|floatformat:2 }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>৳{{ item.total_price|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4" class="text-end"><strong>Subtotal:</strong></td>
+                                <td>৳{{ order.subtotal|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="text-end"><strong>Shipping:</strong></td>
+                                <td>৳{{ order.shipping_cost|floatformat:2 }}</td>
+                            </tr>
+                            {% if order.discount_amount %}
+                            <tr>
+                                <td colspan="4" class="text-end"><strong>Discount:</strong></td>
+                                <td>-৳{{ order.discount_amount|floatformat:2 }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <td colspan="4" class="text-end"><strong>Total:</strong></td>
+                                <td>৳{{ order.total_amount|floatformat:2 }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Order Actions & Notes -->
+    <div class="col-lg-4">
+        <!-- Status Actions -->
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Order Actions</h6>
+            </div>
+            <div class="card-body">
+                <form action="{% url 'crm:update_order_status' order.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Update Status</label>
+                        <select class="form-select" id="status" name="status">
+                            {% for status in statuses %}
+                            <option value="{{ status.id }}" {% if order.status.id == status.id %}selected{% endif %}>
+                                {{ status.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Status</button>
+                </form>
+                
+                <hr>
+                
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#emailCustomerModal">
+                        <i class="fas fa-envelope"></i> Email Customer
+                    </button>
+                    <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#shipOrderModal">
+                        <i class="fas fa-shipping-fast"></i> Ship Order
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Notes -->
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Order Notes</h6>
+            </div>
+            <div class="card-body">
+                <div class="notes-container mb-3" style="max-height: 300px; overflow-y: auto;">
+                    {% for note in notes %}
+                    <div class="note mb-3 p-3 {% if note.is_customer_visible %}bg-light{% else %}bg-warning-light{% endif %} rounded">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-primary fw-bold">{{ note.user }}</span>
+                            <small class="text-muted">{{ note.created_at|date:"M d, Y H:i" }}</small>
+                        </div>
+                        <p class="mb-0 mt-2">{{ note.note }}</p>
+                        {% if note.is_customer_visible %}
+                        <div class="mt-2 text-success">
+                            <i class="fas fa-eye"></i> Visible to customer
+                        </div>
+                        {% else %}
+                        <div class="mt-2 text-danger">
+                            <i class="fas fa-eye-slash"></i> Internal note
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <p class="text-center">No notes yet</p>
+                    {% endfor %}
+                </div>
+                
+                <form action="{% url 'crm:add_order_note' order.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="note" class="form-label">Add Note</label>
+                        <textarea class="form-control" id="note" name="note" rows="3" required></textarea>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="is_customer_visible" name="is_customer_visible">
+                        <label class="form-check-label" for="is_customer_visible">
+                            Make visible to customer
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Note</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Email Customer Modal -->
+<div class="modal fade" id="emailCustomerModal" tabindex="-1" aria-labelledby="emailCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="emailCustomerModalLabel">Email Customer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="emailSubject" class="form-label">Subject</label>
+                        <input type="text" class="form-control" id="emailSubject" value="Your Order #{{ order.id }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="emailMessage" class="form-label">Message</label>
+                        <textarea class="form-control" id="emailMessage" rows="5"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Send Email</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ship Order Modal -->
+<div class="modal fade" id="shipOrderModal" tabindex="-1" aria-labelledby="shipOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="shipOrderModalLabel">Ship Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="shippingMethod" class="form-label">Shipping Method</label>
+                        <select class="form-select" id="shippingMethod">
+                            <option value="steadfast">Steadfast Courier</option>
+                            <option value="other">Other Courier</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="trackingNumber" class="form-label">Tracking Number</label>
+                        <input type="text" class="form-control" id="trackingNumber">
+                    </div>
+                    <div class="mb-3">
+                        <label for="shippingNotes" class="form-label">Shipping Notes</label>
+                        <textarea class="form-control" id="shippingNotes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Ship Order</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

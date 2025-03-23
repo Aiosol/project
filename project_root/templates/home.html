@@ -1,0 +1,294 @@
+<!-- templates/home.html -->
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bangladesh Clothing Shop - Home{% endblock %}
+{% csrf_token %}
+{% block content %}
+    <!-- Hero Section -->
+    <section class="hero-section mb-5">
+        <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-indicators">
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"></button>
+            </div>
+            <div class="carousel-inner">
+
+                <!-- Video Slide (New) -->
+            <div class="carousel-item active">
+                <div class="hero-container position-relative">
+                    <div class="video-container">
+                        <video class="hero-video" autoplay muted loop playsinline>
+                            <source src="{% static 'videos/fashion_promo.mp4' %}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                    <div class="hero-content">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-lg-6 col-md-8">
+                                     
+                                     
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+                <div class="carousel-item">
+                    <img src="{% static 'images/carousel/slide1.png' %}" class="d-block w-100" alt="Latest Collection">
+                     
+                </div>
+                <div class="carousel-item">
+                    <img src="{% static 'images/carousel/slide2.png' %}" class="d-block w-100" alt="Men's Fashion">
+                     
+                </div>
+                <div class="carousel-item">
+                    <img src="{% static 'images/carousel/slide3.png' %}" class="d-block w-100" alt="Women's Collection">
+                     
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- Featured Categories -->
+    <section class="featured-categories mb-5">
+        <h2 class="text-center mb-4">Shop by Category</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card category-card">
+                    <img src="{% static 'images/categories/mens.png' %}" class="card-img-top" alt="Men's Fashion">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Men's Fashion</h5>
+                        <a href="#" class="btn btn-outline-dark">Shop Now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card category-card">
+                    <img src="{% static 'images/categories/womens.png' %}" class="card-img-top" alt="Women's Fashion">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Women's Fashion</h5>
+                        <a href="#" class="btn btn-outline-dark">Shop Now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card category-card">
+                    <img src="{% static 'images/categories/accessories.png' %}" class="card-img-top" alt="Accessories">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Accessories</h5>
+                        <a href="#" class="btn btn-outline-dark">Shop Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+<section class="featured-products mb-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Featured Products</h2>
+        
+        <!-- Add CSRF token for the entire page -->
+{% csrf_token %}
+
+<div class="row g-4">
+    {% for product in featured_products %}
+        <div class="col-md-3 col-sm-6">
+            <div class="card product-card h-100">
+                <div class="product-image-container">
+                    <a href="{% url 'products:product_detail' product.slug %}">
+                        {% with product_image=product.images.first %}
+                            {% if product_image %}
+                                <img src="{{ product_image.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                            {% else %}
+                                <img src="{% static 'images/no-image.png' %}" class="card-img-top" alt="No Image Available">
+                            {% endif %}
+                        {% endwith %}
+                    </a>
+                    <button class="btn wishlist-btn" data-product-id="{{ product.id }}">
+                        <i class="bi bi-heart"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title product-title">
+                        <a href="{% url 'products:product_detail' product.slug %}" class="text-decoration-none text-dark">
+                            {{ product.name }}
+                        </a>
+                    </h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        {% if product.discount_price %}
+                            <p class="card-text mb-0">
+                                <span class="text-muted text-decoration-line-through">৳{{ product.price }}</span>
+                                <span class="fw-bold text-danger">৳{{ product.discount_price }}</span>
+                            </p>
+                        {% else %}
+                            <p class="card-text fw-bold mb-0">৳{{ product.price }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="row g-1 mt-2">
+                        <div class="col-6">
+                            <button class="btn btn-primary py-1 w-100 home-add-to-cart" data-product-id="{{ product.id }}" style="height: 28px; font-size: 0.75rem;">
+                                Add to Cart
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <form method="post" action="{% url 'products:buy_now' product.id %}" style="height: 28px;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success py-1 w-100" style="height: 28px; font-size: 0.75rem;">
+                                    Buy Now
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12 text-center">
+            <p>No featured products available at the moment.</p>
+        </div>
+    {% endfor %}
+</div>
+    <!-- Add inline JavaScript at the bottom of this section -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add event listeners to all home Add to Cart buttons
+            document.querySelectorAll('.home-add-to-cart').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Featured product Add to Cart button clicked');
+                    
+                    const productId = this.getAttribute('data-product-id');
+                    console.log('Product ID:', productId);
+                    
+                    if (!productId) {
+                        console.error('No product ID found');
+                        return;
+                    }
+                    
+                    // Get CSRF token
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                    console.log('CSRF token found:', !!csrfToken);
+                    
+                    // Create form data
+                    const formData = new FormData();
+                    formData.append('quantity', 1);
+                    
+                    // Send AJAX request
+                    fetch(`/cart/add/${productId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: formData
+                    })
+                    .then(response => {
+                        console.log('Response status:', response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Response data:', data);
+                        if (data.success) {
+                            alert(data.message);
+                            
+                            // Update cart count in header
+                            const cartCount = document.querySelector('.cart-count');
+                            if (cartCount) {
+                                cartCount.textContent = data.cart_total;
+                                cartCount.style.display = data.cart_total > 0 ? 'inline-block' : 'none';
+                            }
+                        } else {
+                            alert(data.message || 'Error adding item to cart');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('There was an error adding the item to your cart. Please try again.');
+                    });
+                });
+            });
+        });
+    </script>
+</section>
+
+    <!-- Promotional Banner -->
+    <section class="promo-banner mb-5">
+        <div class="card bg-dark text-white">
+            <img src="{% static 'images/promo/sale-banner.jpg' %}" class="card-img" alt="Special Offer">
+            <div class="card-img-overlay d-flex flex-column justify-content-center text-center">
+                <h2 class="card-title">Special Eid Offer!</h2>
+                <p class="card-text">Get up to 50% off on selected items for a limited time only.</p>
+                <a href="#" class="btn btn-light btn-lg mx-auto">Shop the Sale</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Customer Reviews -->
+    <section class="customer-reviews mb-5">
+        <h2 class="text-center mb-4">What Our Customers Say</h2>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <i class="bi bi-star-fill text-warning"></i>
+                        </div>
+                        <p class="card-text">"The quality of clothes from this shop is outstanding. I've been a customer for over a year and have never been disappointed!"</p>
+                        <p class="card-text"><small class="text-muted">- Rahman Ahmed, Dhaka</small></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <i class="bi bi-star text-warning"></i>
+                        </div>
+                        <p class="card-text">"Fast delivery and the Bkash payment option makes shopping here so convenient. Love the traditional designs with modern touches."</p>
+                        <p class="card-text"><small class="text-muted">- Fatima Khan, Chittagong</small></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <i class="bi bi-star-half text-warning"></i>
+                        </div>
+                        <p class="card-text">"Their customer service is excellent. I had an issue with sizing and they helped me exchange my purchase with no hassle."</p>
+                        <p class="card-text"><small class="text-muted">- Nusrat Jahan, Sylhet</small></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

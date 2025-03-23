@@ -1,0 +1,23 @@
+<!-- templates/payments/failure.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card shadow-sm">
+        <div class="card-body text-center p-5">
+            <div class="mb-4">
+                <i class="bi bi-x-circle-fill text-danger display-1"></i>
+            </div>
+            <h2 class="mb-4">Payment Failed</h2>
+            <p class="lead mb-4">We're sorry, but your payment could not be processed at this time.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{% url 'orders:checkout' %}" class="btn btn-primary">Try Again</a>
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary">Continue Shopping</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends 'crm/base.html' %}
+{% load static %}
+
+{% block title %}Customers{% endblock %}
+
+{% block page_title %}Customers{% endblock %}
+
+{% block header_buttons %}
+<div class="btn-group me-2">
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
+        <i class="fas fa-filter"></i> Filter
+    </button>
+    <a href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'export' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}export=true" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-download"></i> Export
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Filter Modal -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="filterModalLabel">Filter Customers</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="filterForm" method="get">
+                    <div class="mb-3">
+                        <label for="customer_type" class="form-label">Customer Type</label>
+                        <select class="form-select" id="customer_type" name="customer_type">
+                            <option value="">All Types</option>
+                            <option value="regular" {% if filters.customer_type == 'regular' %}selected{% endif %}>Regular</option>
+                            <option value="vip" {% if filters.customer_type == 'vip' %}selected{% endif %}>VIP</option>
+                            <option value="wholesale" {% if filters.customer_type == 'wholesale' %}selected{% endif %}>Wholesale</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="q" class="form-label">Search</label>
+                        <input type="text" class="form-control" id="q" name="q" placeholder="Name, email, phone..." value="{{ filters.query }}">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <a href="{% url 'crm:customer_list' %}" class="btn btn-secondary">Clear Filters</a>
+                <button type="submit" form="filterForm" class="btn btn-primary">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Customers Table -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Customer List</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="customersTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Type</th>
+                        <th>Orders</th>
+                        <th>Lifetime Value</th>
+                        <th>Last Order</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr>
+                        <td>{{ customer.id }}</td>
+                        <td>{{ customer.user.get_full_name }}</td>
+                        <td>{{ customer.user.email }}</td>
+                        <td>
+                            <span class="badge bg-{% if customer.customer_type == 'regular' %}secondary{% elif customer.customer_type == 'vip' %}primary{% else %}success{% endif %}">
+                                {{ customer.get_customer_type_display }}
+                            </span>
+                        </td>
+                        <td>{{ customer.total_orders }}</td>
+                        <td>৳{{ customer.lifetime_value|floatformat:2 }}</td>
+                        <td>
+                            {% if customer.last_purchase_date %}
+                            {{ customer.last_purchase_date|date:"M d, Y" }}
+                            {% else %}
+                            Never
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'crm:customer_detail' customer.id %}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">No customers found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#customersTable').DataTable({
+            order: [[5, 'desc']]  // Sort by lifetime value
+        });
+    });
+</script>
+{% endblock %}
