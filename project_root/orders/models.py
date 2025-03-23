@@ -29,9 +29,11 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     
-    @property
-    def total_price(self):
-        return self.price * self.quantity
-    
-    def __str__(self):
-        return f"{self.quantity} x {self.product.name}"
+    # Update in the orders/models.py file
+
+# In orders/models.py - Update the total_price property
+@property
+def total_price(self):
+    if self.price is None:
+        return 0
+    return self.price * self.quantity
