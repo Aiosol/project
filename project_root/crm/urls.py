@@ -46,4 +46,14 @@ urlpatterns = [
     # Notifications
     path('notifications/', views.notification_list, name='notification_list'),
     path('notifications/mark-read/<int:notification_id>/', views.mark_notification_read, name='mark_notification_read'),
+
+    # Add these to urlpatterns in crm/urls.py
+path('orders/create/', views.create_order, name='create_order'),
+path('orders/create/add-item/', views.add_order_item, name='add_order_item'),
+path('orders/create/remove-item/<int:item_id>/', views.remove_order_item, name='remove_order_item'),
+
+path('api/product/<int:product_id>/variants/', views.product_variants_api, name='product_variants_api'),
+
 ]
+
+  

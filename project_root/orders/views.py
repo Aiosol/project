@@ -6,6 +6,21 @@ from django.utils import timezone
 from .forms import CheckoutForm
 from .models import Order, OrderItem
 import uuid
+from crm.models import OrderStatus
+
+pending_status, created = OrderStatus.objects.get_or_create(
+    name='Pending',
+    defaults={
+        'description': 'Order has been placed but not yet processed',
+        'color_code': '#f6c23e',
+        'is_active': True,
+        'sort_order': 10,
+        'is_initial': True,
+        'is_processing': False,
+        'is_completed': False,
+        'is_cancelled': False
+    }
+)
 
 def generate_order_number():
     # Generate a unique order number
@@ -78,32 +93,44 @@ def order_review(request):
     checkout_data = request.session['checkout_data']
     
     if request.method == 'POST':
-        # Create the order
+        # Get or create a "Pending" status
+        from crm.models import OrderStatus
+        pending_status, created = OrderStatus.objects.get_or_create(
+            name='Pending',
+            defaults={
+                'description': 'Order has been placed but not yet processed',
+                'color_code': '#f6c23e',
+                'is_active': True,
+                'sort_order': 10,
+                'is_initial': True,
+                'is_processing': False,
+                'is_completed': False,
+                'is_cancelled': False
+            }
+        )
+        
+        # Create the order with the new field structure
         order = Order(
-            user=request.user if request.user.is_authenticated else None,
-            order_number=generate_order_number(),
-            full_name=checkout_data['full_name'],
-            email=checkout_data['email'],
-            phone=checkout_data['phone'],
-            address_line_1=checkout_data['address_line_1'],
-            address_line_2=checkout_data['address_line_2'],
-            city=checkout_data['city'],
-            postal_code=checkout_data['postal_code'],
+            customer=request.user if request.user.is_authenticated else None,
+            shipping_address=f"{checkout_data['full_name']}\n{checkout_data['address_line_1']}\n{checkout_data.get('address_line_2', '')}\n{checkout_data['city']}, {checkout_data['postal_code']}\nPhone: {checkout_data['phone']}\nEmail: {checkout_data['email']}",
+            billing_address=None,  # Or set to shipping_address if needed
             payment_method=checkout_data['payment_method'],
+            payment_status='pending',
             total_amount=cart.total_price,
-            status='pending'
+            status=pending_status
         )
         order.save()
         
         # Create order items
         for cart_item in cart.items.all():
-            product = cart_item.product_variant.product
+            product_variant = cart_item.product_variant
+            product = product_variant.product
             OrderItem.objects.create(
                 order=order,
-                product_variant=cart_item.product_variant,
-                product_name=product.name,
-                price=product.discount_price if product.discount_price else product.price,
-                quantity=cart_item.quantity
+                product=product,
+                variant=product_variant,
+                quantity=cart_item.quantity,
+                price=product.discount_price if product.discount_price else product.price
             )
         
         # Store order ID in session

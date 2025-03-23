@@ -5,12 +5,16 @@ from django.contrib import messages
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from django.http import JsonResponse
+from django.views.decorators.http import require_POST  # Add this import
+from django.forms import modelform_factory
 from datetime import datetime, timedelta
 
-from .models import CRMUser, OrderStatus, SalesTarget
-from orders.models import Order
-from products.models import Product
+# Import the decorator first
 from .decorators import crm_login_required
+
+from .models import CRMUser, OrderStatus, SalesTarget, OrderNote
+from orders.models import Order, OrderItem
+from products.models import Product, ProductVariant
 
 # Authentication Views
 def crm_login(request):
@@ -37,8 +41,7 @@ def crm_logout(request):
     return redirect('crm:login')
 
 
-# crm/views.py - update the dashboard function
-
+# Dashboard View
 @crm_login_required
 def dashboard(request):
     # Get current date and start of month for filtering
@@ -211,8 +214,6 @@ def order_list(request):
     return render(request, 'crm/orders/list.html', context)
 
 
-# crm/views.py - update the order_detail function
-
 @crm_login_required
 def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id)
@@ -227,8 +228,6 @@ def order_detail(request, order_id):
     
     return render(request, 'crm/orders/detail.html', context)
 
-
- 
 
 @crm_login_required
 def update_order_status(request, order_id):
@@ -250,8 +249,6 @@ def update_order_status(request, order_id):
     
     return redirect('crm:order_detail', order_id=order_id)
 
-
-# crm/views.py - update the add_order_note function
 
 @crm_login_required
 def add_order_note(request, order_id):
@@ -276,74 +273,223 @@ def add_order_note(request, order_id):
 
 
 # Customer Management Views
+@crm_login_required
 def customer_list(request):
     return render(request, 'crm/customers/list.html', {'customers': []})
 
 
+@crm_login_required
 def customer_detail(request, customer_id):
     return render(request, 'crm/customers/detail.html', {'customer': {}})
 
 
 # Inventory Management Views
+@crm_login_required
 def inventory_list(request):
     return render(request, 'crm/inventory/list.html', {'products': []})
 
 
+@crm_login_required
 def inventory_log(request):
     return render(request, 'crm/inventory/log.html', {'logs': []})
 
 
+@crm_login_required
 def adjust_inventory(request, product_id):
     return redirect('crm:inventory_list')
 
 
 # Reports Views
+@crm_login_required
 def reports_dashboard(request):
     return render(request, 'crm/reports/dashboard.html')
 
 
+@crm_login_required
 def sales_report(request):
     return render(request, 'crm/reports/sales.html')
 
 
+@crm_login_required
 def inventory_report(request):
     return render(request, 'crm/reports/inventory.html')
 
 
+@crm_login_required
 def customer_report(request):
     return render(request, 'crm/reports/customers.html')
 
 
 # Sales Targets Views
+@crm_login_required
 def sales_targets(request):
     return render(request, 'crm/targets/list.html', {'targets': []})
 
 
+@crm_login_required
 def create_sales_target(request):
     return render(request, 'crm/targets/create.html')
 
 
+@crm_login_required
 def edit_sales_target(request, target_id):
     return render(request, 'crm/targets/edit.html', {'target': {}})
 
 
 # User Management Views
+@crm_login_required
 def user_list(request):
     return render(request, 'crm/users/list.html', {'users': []})
 
 
+@crm_login_required
 def create_user(request):
     return render(request, 'crm/users/create.html')
 
 
+@crm_login_required
 def edit_user(request, user_id):
     return render(request, 'crm/users/edit.html', {'user': {}})
 
 
 # Notification Views
+@crm_login_required
 def notification_list(request):
     return render(request, 'crm/notifications/list.html', {'notifications': []})
 
 
+@crm_login_required
 def mark_notification_read(request, notification_id):
     return redirect('crm:notification_list')
+
+
+# Manual Order Creation Views
+@crm_login_required
+def create_order(request):
+    """Create a new order manually"""
+    # Create ModelForms for Order and OrderItem
+    OrderForm = modelform_factory(
+        Order, 
+        fields=['customer', 'shipping_address', 'billing_address', 'payment_method', 'payment_status', 'status']
+    )
+    
+    if request.method == 'POST':
+        form = OrderForm(request.POST)
+        if form.is_valid():
+            # Create order but don't save yet
+            order = form.save(commit=False)
+            
+            # Calculate total from session items
+            items = request.session.get('manual_order_items', [])
+            total = sum(item['price'] * item['quantity'] for item in items)
+            order.total_amount = total
+            
+            # Save the order
+            order.save()
+            
+            # Create order items
+            for item_data in items:
+                OrderItem.objects.create(
+                    order=order,
+                    product_id=item_data['product_id'],
+                    variant_id=item_data.get('variant_id'),
+                    quantity=item_data['quantity'],
+                    price=item_data['price']
+                )
+            
+            # Clear session data
+            if 'manual_order_items' in request.session:
+                del request.session['manual_order_items']
+            
+            messages.success(request, f"Order #{order.id} created successfully")
+            return redirect('crm:order_detail', order_id=order.id)
+    else:
+        form = OrderForm()
+    
+    # Get items from session
+    items = request.session.get('manual_order_items', [])
+    item_details = []
+    
+    for item in items:
+        product = Product.objects.get(id=item['product_id'])
+        variant = ProductVariant.objects.get(id=item['variant_id']) if item.get('variant_id') else None
+        
+        item_details.append({
+            'id': item.get('id', 0),
+            'product': product,
+            'variant': variant,
+            'quantity': item['quantity'],
+            'price': item['price'],
+            'total': item['price'] * item['quantity']
+        })
+    
+    # Calculate total
+    total = sum(item['total'] for item in item_details)
+    
+    context = {
+        'form': form,
+        'items': item_details,
+        'total': total,
+        'products': Product.objects.all()
+    }
+    
+    return render(request, 'crm/orders/create.html', context)
+
+
+@require_POST
+@crm_login_required
+def add_order_item(request):
+    """Add an item to the manual order"""
+    product_id = request.POST.get('product_id')
+    variant_id = request.POST.get('variant_id', None)
+    quantity = int(request.POST.get('quantity', 1))
+    
+    # Get product and price
+    product = get_object_or_404(Product, id=product_id)
+    price = product.discount_price if product.discount_price else product.price
+    
+    # Get items from session or initialize empty list
+    items = request.session.get('manual_order_items', [])
+    
+    # Add new item with unique id
+    import time
+    items.append({
+        'id': int(time.time() * 1000),  # Use timestamp as id
+        'product_id': int(product_id),
+        'variant_id': int(variant_id) if variant_id else None,
+        'quantity': quantity,
+        'price': float(price)
+    })
+    
+    # Save back to session
+    request.session['manual_order_items'] = items
+    
+    return redirect('crm:create_order')
+
+
+@crm_login_required
+def remove_order_item(request, item_id):
+    """Remove an item from the manual order"""
+    items = request.session.get('manual_order_items', [])
+    
+    # Filter out the item with the given id
+    items = [item for item in items if item.get('id') != item_id]
+    
+    # Save back to session
+    request.session['manual_order_items'] = items
+    
+    return redirect('crm:create_order')
+
+
+@crm_login_required
+def product_variants_api(request, product_id):
+    """API endpoint to get variants for a product"""
+    product = get_object_or_404(Product, id=product_id)
+    variants = ProductVariant.objects.filter(product=product)
+    
+    return JsonResponse({
+        'variants': [
+            {'id': variant.id, 'name': variant.name}
+            for variant in variants
+        ]
+    })

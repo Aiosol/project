@@ -4,17 +4,10 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-from orders.admin import OrderAdminSite
+# Import the proper OrderAdminSite instance
+from orders.admin import order_admin
 
-
-# Create custom admin site
-order_admin_site = OrderAdminSite(name='order_admin')
-
-# Register models with custom admin site
-from orders.models import Order, OrderItem
-order_admin_site.register(Order)
-order_admin_site.register(OrderItem)
-
+ 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,9 +17,10 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('orders/', include('orders.urls')),
     path('payments/', include('payments.urls')),
+     
+        # Use the properly defined order_admin instance
+    path('order-admin/', order_admin.urls),
 
-    path('admin/', admin.site.urls),
-    path('order-admin/', order_admin_site.urls),
     path('crm/', include('crm.urls', namespace='crm')),
 ]
 

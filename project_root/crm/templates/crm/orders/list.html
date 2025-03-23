@@ -114,4 +114,19 @@
         });
     });
 </script>
+
+<!-- In crm/templates/crm/orders/list.html -->
+{% block header_buttons %}
+<a href="{% url 'crm:create_order' %}" class="btn btn-sm btn-primary me-2">
+    <i class="fas fa-plus"></i> Create Manual Order
+</a>
+<div class="btn-group me-2">
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
+        <i class="fas fa-filter"></i> Filter
+    </button>
+    <a href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'export' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}export=true" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-download"></i> Export
+    </a>
+</div>
 {% endblock %}
+ 
