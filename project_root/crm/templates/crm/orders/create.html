@@ -6,179 +6,160 @@
 {% block page_title %}Create Manual Order{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Order Information</h6>
-            </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="{{ form.customer.id_for_label }}">Customer</label>
-                                {{ form.customer }}
-                            </div>
+<!-- Replace the existing form with a tabbed interface -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Create New Order</h6>
+    </div>
+    <div class="card-body">
+        <ul class="nav nav-tabs" id="orderTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="customer-tab" data-bs-toggle="tab" data-bs-target="#customer" type="button" role="tab">
+                    <i class="fas fa-user me-2"></i>Customer
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab">
+                    <i class="fas fa-shopping-cart me-2"></i>Products
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shipping" type="button" role="tab">
+                    <i class="fas fa-truck me-2"></i>Shipping
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="payment-tab" data-bs-toggle="tab" data-bs-target="#payment" type="button" role="tab">
+                    <i class="fas fa-credit-card me-2"></i>Payment
+                </button>
+            </li>
+        </ul>
+        
+        <form method="post" id="create-order-form">
+            {% csrf_token %}
+            <div class="tab-content p-3" id="orderTabContent">
+                <!-- Customer Tab -->
+                <div class="tab-pane fade show active" id="customer" role="tabpanel">
+                    <div class="mb-3">
+                        <label for="{{ form.customer.id_for_label }}" class="form-label">Select Customer</label>
+                        {{ form.customer }}
+                    </div>
+                    <div class="text-end mt-3">
+                        <button type="button" class="btn btn-primary next-tab" data-next="products-tab">
+                            Next <i class="fas fa-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Products Tab -->
+                <div class="tab-pane fade" id="products" role="tabpanel">
+                    <!-- Product selection and quantity -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Order Items</h5>
+                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                                <i class="fas fa-plus"></i> Add Product
+                            </button>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="{{ form.payment_method.id_for_label }}">Payment Method</label>
-                                {{ form.payment_method }}
-                            </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Variant</th>
+                                        <th>Price</th>
+                                        <th>Quantity</th>
+                                        <th>Total</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="order-items-table">
+                                    {% for item in items %}
+                                    <tr>
+                                        <td>{{ item.product.name }}</td>
+                                        <td>{{ item.variant.name|default:"N/A" }}</td>
+                                        <td>৳{{ item.price|floatformat:2 }}</td>
+                                        <td>{{ item.quantity }}</td>
+                                        <td>৳{{ item.total|floatformat:2 }}</td>
+                                        <td>
+                                            <a href="{% url 'crm:remove_order_item' item.id %}" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr id="no-items-row">
+                                        <td colspan="6" class="text-center">No items added yet</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                     
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="{{ form.payment_status.id_for_label }}">Payment Status</label>
-                                {{ form.payment_status }}
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="{{ form.status.id_for_label }}">Order Status</label>
-                                {{ form.status }}
-                            </div>
-                        </div>
+                    <div class="d-flex justify-content-between mt-3">
+                        <button type="button" class="btn btn-secondary prev-tab" data-prev="customer-tab">
+                            <i class="fas fa-arrow-left me-1"></i> Previous
+                        </button>
+                        <button type="button" class="btn btn-primary next-tab" data-next="shipping-tab">
+                            Next <i class="fas fa-arrow-right ms-1"></i>
+                        </button>
                     </div>
-                    
-                    <div class="form-group mb-3">
-                        <label for="{{ form.shipping_address.id_for_label }}">Shipping Address</label>
+                </div>
+                
+                <!-- Shipping Tab -->
+                <div class="tab-pane fade" id="shipping" role="tabpanel">
+                    <div class="mb-3">
+                        <label for="{{ form.shipping_address.id_for_label }}" class="form-label">Shipping Address</label>
                         {{ form.shipping_address }}
                     </div>
                     
-                    <div class="form-group mb-3">
-                        <label for="{{ form.billing_address.id_for_label }}">Billing Address</label>
+                    <div class="mb-3">
+                        <label for="{{ form.billing_address.id_for_label }}" class="form-label">Billing Address</label>
                         {{ form.billing_address }}
                     </div>
                     
-                    <div class="card mt-4">
-                        <div class="card-header">
-                            <h6 class="m-0 font-weight-bold text-primary">Order Items</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>Product</th>
-                                            <th>Variant</th>
-                                            <th>Price</th>
-                                            <th>Quantity</th>
-                                            <th>Total</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for item in items %}
-                                        <tr>
-                                            <td>{{ item.product.name }}</td>
-                                            <td>{{ item.variant.name|default:"N/A" }}</td>
-                                            <td>৳{{ item.price|floatformat:2 }}</td>
-                                            <td>{{ item.quantity }}</td>
-                                            <td>৳{{ item.total|floatformat:2 }}</td>
-                                            <td>
-                                                <a href="{% url 'crm:remove_order_item' item.id %}" class="btn btn-sm btn-danger">
-                                                    <i class="fas fa-trash"></i>
-                                                </a>
-                                            </td>
-                                        </tr>
-                                        {% empty %}
-                                        <tr>
-                                            <td colspan="6" class="text-center">No items added yet</td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <td colspan="4" class="text-right"><strong>Total:</strong></td>
-                                            <td>৳{{ total|floatformat:2 }}</td>
-                                            <td></td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                            
-                            <button type="button" class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#addItemModal">
-                                <i class="fas fa-plus"></i> Add Item
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="text-center mt-4">
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-save"></i> Save Order
+                    <div class="d-flex justify-content-between mt-3">
+                        <button type="button" class="btn btn-secondary prev-tab" data-prev="products-tab">
+                            <i class="fas fa-arrow-left me-1"></i> Previous
+                        </button>
+                        <button type="button" class="btn btn-primary next-tab" data-next="payment-tab">
+                            Next <i class="fas fa-arrow-right ms-1"></i>
                         </button>
                     </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-lg-4">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Order Summary</h6>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <h5>Total Items: {{ items|length }}</h5>
-                    <h4>Total Amount: ৳{{ total|floatformat:2 }}</h4>
                 </div>
                 
-                <hr>
-                
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i> Create a manual order for offline sales
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Add Item Modal -->
-<div class="modal fade" id="addItemModal" tabindex="-1" aria-labelledby="addItemModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addItemModalLabel">Add Order Item</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{% url 'crm:add_order_item' %}" method="post">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="product_id" class="form-label">Product</label>
-                        <select class="form-select" id="product_id" name="product_id" required>
-                            <option value="">Select Product</option>
-                            {% for product in products %}
-                            <option value="{{ product.id }}">{{ product.name }} - ৳{{ product.price|floatformat:2 }}</option>
-                            {% endfor %}
-                        </select>
+                <!-- Payment Tab -->
+                <div class="tab-pane fade" id="payment" role="tabpanel">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.payment_method.id_for_label }}" class="form-label">Payment Method</label>
+                            {{ form.payment_method }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.payment_status.id_for_label }}" class="form-label">Payment Status</label>
+                            {{ form.payment_status }}
+                        </div>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="variant_id" class="form-label">Variant (Optional)</label>
-                        <select class="form-select" id="variant_id" name="variant_id">
-                            <option value="">No Variant</option>
-                        </select>
+                        <label for="{{ form.status.id_for_label }}" class="form-label">Order Status</label>
+                        {{ form.status }}
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="quantity" class="form-label">Quantity</label>
-                        <input type="number" class="form-control" id="quantity" name="quantity" min="1" value="1" required>
+                    <div class="d-flex justify-content-between mt-3">
+                        <button type="button" class="btn btn-secondary prev-tab" data-prev="shipping-tab">
+                            <i class="fas fa-arrow-left me-1"></i> Previous
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-1"></i> Create Order
+                        </button>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Item</button>
-                </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}

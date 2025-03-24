@@ -538,3 +538,67 @@ def product_variants_api(request, product_id):
             for variant in variants
         ]
     })
+
+
+@crm_login_required
+def bulk_update_status(request):
+    """Update status for multiple orders"""
+    if request.method == 'POST':
+        order_ids = request.POST.get('order_ids', '').split(',')
+        status_id = request.POST.get('status')
+        
+        if order_ids and status_id:
+            try:
+                status = OrderStatus.objects.get(id=status_id)
+                updated = Order.objects.filter(id__in=order_ids).update(status=status)
+                messages.success(request, f"Updated status for {updated} orders to {status.name}")
+            except OrderStatus.DoesNotExist:
+                messages.error(request, "Invalid status selected")
+        else:
+            messages.error(request, "No orders or status selected")
+            
+    return redirect('crm:dashboard')
+
+@crm_login_required
+@require_POST
+def bulk_delete_orders(request):
+    """Delete multiple orders"""
+    data = json.loads(request.body)
+    order_ids = data.get('order_ids', [])
+    
+    if order_ids:
+        deleted, _ = Order.objects.filter(id__in=order_ids).delete()
+        if deleted > 0:
+            return JsonResponse({'success': True, 'message': f"{deleted} orders deleted successfully"})
+    
+    return JsonResponse({'success': False, 'message': "Failed to delete orders"})
+
+@crm_login_required
+def export_orders(request):
+    """Export selected orders as CSV"""
+    order_ids = request.GET.get('ids', '').split(',')
+    
+    if not order_ids:
+        messages.error(request, "No orders selected for export")
+        return redirect('crm:dashboard')
+    
+    orders = Order.objects.filter(id__in=order_ids).select_related('customer', 'status')
+    
+    # Create CSV response
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="orders_export.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Order ID', 'Date', 'Customer', 'Total Amount', 'Status', 'Payment Method'])
+    
+    for order in orders:
+        writer.writerow([
+            order.id,
+            order.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            order.customer.get_full_name() if order.customer else 'Guest',
+            order.total_amount,
+            order.status.name if order.status else 'Unknown',
+            order.payment_method
+        ])
+    
+    return response

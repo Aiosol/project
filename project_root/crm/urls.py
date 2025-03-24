@@ -54,6 +54,12 @@ path('orders/create/remove-item/<int:item_id>/', views.remove_order_item, name='
 
 path('api/product/<int:product_id>/variants/', views.product_variants_api, name='product_variants_api'),
 path('debug/', views.debug_view, name='debug'),
+
+
+# Bulk actions
+path('orders/bulk-status/', views.bulk_update_status, name='bulk_update_status'),
+path('orders/bulk-delete/', views.bulk_delete_orders, name='bulk_delete_orders'),
+path('orders/export/', views.export_orders, name='export_orders'),
 ]
 
   
