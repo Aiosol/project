@@ -171,7 +171,7 @@ def confirmation(request, order_id):
         
         # Security check - only allow viewing by the order owner or if just placed (in session)
         session_order_id = request.session.get('order_id')
-        if (request.user.is_authenticated and order.user == request.user) or str(order.id) == str(session_order_id):
+        if (request.user.is_authenticated and order.customer == request.user) or str(order.id) == str(session_order_id):
             # Clear the session order ID
             if 'order_id' in request.session:
                 del request.session['order_id']
@@ -190,7 +190,8 @@ def confirmation(request, order_id):
 @login_required
 def order_history(request):
     """User order history"""
-    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    # Change this line from 'user=request.user' to 'customer=request.user'
+    orders = Order.objects.filter(customer=request.user).order_by('-created_at')
     return render(request, 'orders/history.html', {
         'title': 'Order History',
         'orders': orders

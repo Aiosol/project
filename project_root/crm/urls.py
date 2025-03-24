@@ -53,7 +53,7 @@ path('orders/create/add-item/', views.add_order_item, name='add_order_item'),
 path('orders/create/remove-item/<int:item_id>/', views.remove_order_item, name='remove_order_item'),
 
 path('api/product/<int:product_id>/variants/', views.product_variants_api, name='product_variants_api'),
-
+path('debug/', views.debug_view, name='debug'),
 ]
 
   

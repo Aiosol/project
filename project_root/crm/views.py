@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST  # Add this import
+from django.views.decorators.http import require_POST
 from django.forms import modelform_factory
 from datetime import datetime, timedelta
 
@@ -48,37 +48,59 @@ def dashboard(request):
     today = timezone.now().date()
     start_of_month = today.replace(day=1)
     
-    # Try to get real data - if models aren't yet updated, use placeholders
+    # Debug variables
+    debug_info = {}
+    
     try:
         # Today's sales
+        print("Attempting to get today's sales...")
+        debug_info['step'] = "today_sales"
         today_sales = Order.objects.filter(
             created_at__date=today
         ).aggregate(total=Sum('total_amount'))['total'] or 0
+        debug_info['today_sales'] = today_sales
         
         # Monthly sales
+        print("Attempting to get monthly sales...")
+        debug_info['step'] = "monthly_sales"
         monthly_sales = Order.objects.filter(
             created_at__date__gte=start_of_month
         ).aggregate(total=Sum('total_amount'))['total'] or 0
+        debug_info['monthly_sales'] = monthly_sales
         
-        # Pending orders - adjust the query based on your status field
+        # Pending orders - more resilient query
+        print("Attempting to get pending orders...")
+        debug_info['step'] = "pending_orders"
         pending_orders = Order.objects.filter(
-            status__is_completed=False,
-            status__is_cancelled=False
+            status__isnull=False,
+            status__is_initial=True
         ).count()
+        debug_info['pending_orders'] = pending_orders
         
         # Low stock products
-        low_stock_products = Product.objects.filter(stock__lte=10).count()
+        print("Attempting to get low stock products...")
+        debug_info['step'] = "low_stock_products"
+        low_stock_products = Product.objects.filter(stock_quantity__lte=10).count()
+        debug_info['low_stock_products'] = low_stock_products
         
-        # Recent orders
-        recent_orders = Order.objects.all().order_by('-created_at')[:10]
+        # Recent orders - make sure we use the right field
+        print("Attempting to get recent orders...")
+        debug_info['step'] = "recent_orders"
+        recent_orders = Order.objects.select_related('customer', 'status').order_by('-created_at')[:10]
+        debug_info['recent_orders_count'] = len(list(recent_orders))
         
         # Active sales targets
+        print("Attempting to get active sales targets...")
+        debug_info['step'] = "active_targets"
         active_targets = SalesTarget.objects.filter(
             is_active=True,
             end_date__gte=today
         )
+        debug_info['active_targets_count'] = active_targets.count()
         
         # Sales data for chart - last 12 months
+        print("Attempting to get sales chart data...")
+        debug_info['step'] = "sales_data"
         sales_data = []
         for i in range(11, -1, -1):
             month_start = (today.replace(day=1) - timedelta(days=i*30)).replace(day=1)
@@ -93,9 +115,16 @@ def dashboard(request):
                 'month': month_name,
                 'sales': month_sales
             })
+        debug_info['sales_data_count'] = len(sales_data)
+        
     except Exception as e:
-        # If there's an error (e.g., missing model fields), use placeholders
-        print(f"Error fetching dashboard data: {e}")
+        # Log the actual error
+        print(f"Error in dashboard at step: {debug_info.get('step', 'unknown')}")
+        print(f"Error details: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Fallback to placeholder data
         today_sales = 15000
         monthly_sales = 450000
         pending_orders = 12
@@ -125,10 +154,26 @@ def dashboard(request):
         'recent_orders': recent_orders,
         'active_targets': active_targets,
         'sales_data': sales_data,
-        'today': today
+        'today': today,
+        'debug_info': debug_info  # Remove in production
     }
     
     return render(request, 'crm/dashboard.html', context)
+
+
+# Debug View to check OrderStatus records
+@crm_login_required
+def debug_view(request):
+    order_statuses = OrderStatus.objects.all()
+    orders = Order.objects.all()
+    
+    return JsonResponse({
+        'status_count': order_statuses.count(),
+        'statuses': list(order_statuses.values('id', 'name', 'is_initial', 'is_processing', 'is_completed')),
+        'orders_count': orders.count(),
+        'orders_with_status': Order.objects.filter(status__isnull=False).count(),
+        'order_fields': [f.name for f in Order._meta.fields]
+    })
 
 
 # Sales Data API
@@ -186,9 +231,10 @@ def order_list(request):
     if query:
         orders = orders.filter(
             Q(id__icontains=query) |
-            Q(customer__user__first_name__icontains=query) |
-            Q(customer__user__last_name__icontains=query) |
-            Q(customer__user__email__icontains=query) |
+            Q(customer__username__icontains=query) |
+            Q(customer__first_name__icontains=query) |
+            Q(customer__last_name__icontains=query) |
+            Q(customer__email__icontains=query) |
             Q(shipping_address__icontains=query)
         )
     
@@ -367,7 +413,6 @@ def mark_notification_read(request, notification_id):
 @crm_login_required
 def create_order(request):
     """Create a new order manually"""
-    # Create ModelForms for Order and OrderItem
     OrderForm = modelform_factory(
         Order, 
         fields=['customer', 'shipping_address', 'billing_address', 'payment_method', 'payment_status', 'status']

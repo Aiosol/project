@@ -5,8 +5,9 @@ from accounts.models import User
 from products.models import Product, ProductVariant
 
 class Order(models.Model):
+    order_number = models.CharField(max_length=20, unique=True, null=True, blank=True)
     customer = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='orders', null=True, blank=True)
-    shipping_address = models.TextField(null=True, blank=True)  # Made nullable
+    shipping_address = models.TextField(null=True, blank=True)
     billing_address = models.TextField(blank=True, null=True)
     payment_method = models.CharField(max_length=50, null=True, blank=True)  # Made nullable
     payment_status = models.CharField(max_length=50, default='pending')

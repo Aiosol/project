@@ -50,11 +50,11 @@
                                 <tbody>
                                     {% for order in orders %}
                                     <tr>
-                                        <td>{{ order.order_number }}</td>
+                                        <td>#{{ order.id }}</td>
                                         <td>{{ order.created_at|date:"M d, Y" }}</td>
                                         <td>৳{{ order.total_amount }}</td>
                                         <td>
-                                            {% if order.status == 'pending' %}
+                                            {% if order.status.name == 'Pending' %}
                                                 <span class="badge bg-warning text-dark">Pending</span>
                                             {% elif order.status == 'processing' %}
                                                 <span class="badge bg-info">Processing</span>
@@ -67,7 +67,7 @@
                                             {% endif %}
                                         </td>
                                         <td>
-                                            {% if order.is_paid %}
+                                            {% if order.payment_status == 'paid' %}
                                                 <span class="badge bg-success">Paid</span>
                                             {% else %}
                                                 <span class="badge bg-secondary">Unpaid</span>

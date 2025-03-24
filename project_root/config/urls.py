@@ -22,6 +22,7 @@ urlpatterns = [
     path('order-admin/', order_admin.urls),
 
     path('crm/', include('crm.urls', namespace='crm')),
+    
 ]
 
 # Add static and media URL patterns if not already done
