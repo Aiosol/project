@@ -5257,3 +5257,190 @@ Traceback (most recent call last):
   File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader.py", line 19, in get_template
     raise TemplateDoesNotExist(template_name, chain=chain)
 django.template.exceptions.TemplateDoesNotExist: crm/users/list.html
+INFO 2025-03-25 16:20:38,519 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-25 16:20:39,846 autoreload Watching for file changes with StatReloader
+INFO 2025-03-25 17:35:59,011 autoreload Watching for file changes with StatReloader
+WARNING 2025-03-25 17:36:05,763 log Not Found: /favicon.ico
+DEBUG 2025-03-25 17:39:07,824 Image Importing BlpImagePlugin
+DEBUG 2025-03-25 17:39:07,827 Image Importing BmpImagePlugin
+DEBUG 2025-03-25 17:39:07,828 Image Importing BufrStubImagePlugin
+DEBUG 2025-03-25 17:39:07,831 Image Importing CurImagePlugin
+DEBUG 2025-03-25 17:39:07,835 Image Importing DcxImagePlugin
+DEBUG 2025-03-25 17:39:07,840 Image Importing DdsImagePlugin
+DEBUG 2025-03-25 17:39:07,848 Image Importing EpsImagePlugin
+DEBUG 2025-03-25 17:39:07,858 Image Importing FitsImagePlugin
+DEBUG 2025-03-25 17:39:07,860 Image Importing FliImagePlugin
+DEBUG 2025-03-25 17:39:07,862 Image Importing FpxImagePlugin
+DEBUG 2025-03-25 17:39:07,872 Image Image: failed to import FpxImagePlugin: No module named 'olefile'
+DEBUG 2025-03-25 17:39:07,873 Image Importing FtexImagePlugin
+DEBUG 2025-03-25 17:39:07,875 Image Importing GbrImagePlugin
+DEBUG 2025-03-25 17:39:07,877 Image Importing GifImagePlugin
+DEBUG 2025-03-25 17:39:07,878 Image Importing GribStubImagePlugin
+DEBUG 2025-03-25 17:39:07,882 Image Importing Hdf5StubImagePlugin
+DEBUG 2025-03-25 17:39:07,890 Image Importing IcnsImagePlugin
+DEBUG 2025-03-25 17:39:07,896 Image Importing IcoImagePlugin
+DEBUG 2025-03-25 17:39:07,906 Image Importing ImImagePlugin
+DEBUG 2025-03-25 17:39:07,908 Image Importing ImtImagePlugin
+DEBUG 2025-03-25 17:39:07,911 Image Importing IptcImagePlugin
+DEBUG 2025-03-25 17:39:07,914 Image Importing JpegImagePlugin
+DEBUG 2025-03-25 17:39:07,914 Image Importing Jpeg2KImagePlugin
+DEBUG 2025-03-25 17:39:07,914 Image Importing McIdasImagePlugin
+DEBUG 2025-03-25 17:39:07,922 Image Importing MicImagePlugin
+DEBUG 2025-03-25 17:39:07,925 Image Image: failed to import MicImagePlugin: No module named 'olefile'
+DEBUG 2025-03-25 17:39:07,925 Image Importing MpegImagePlugin
+DEBUG 2025-03-25 17:39:07,927 Image Importing MpoImagePlugin
+DEBUG 2025-03-25 17:39:07,939 Image Importing MspImagePlugin
+DEBUG 2025-03-25 17:39:07,942 Image Importing PalmImagePlugin
+DEBUG 2025-03-25 17:39:07,947 Image Importing PcdImagePlugin
+DEBUG 2025-03-25 17:39:07,948 Image Importing PcxImagePlugin
+DEBUG 2025-03-25 17:39:07,949 Image Importing PdfImagePlugin
+DEBUG 2025-03-25 17:39:07,972 Image Importing PixarImagePlugin
+DEBUG 2025-03-25 17:39:07,980 Image Importing PngImagePlugin
+DEBUG 2025-03-25 17:39:07,981 Image Importing PpmImagePlugin
+DEBUG 2025-03-25 17:39:07,982 Image Importing PsdImagePlugin
+DEBUG 2025-03-25 17:39:07,993 Image Importing QoiImagePlugin
+DEBUG 2025-03-25 17:39:07,996 Image Importing SgiImagePlugin
+DEBUG 2025-03-25 17:39:07,998 Image Importing SpiderImagePlugin
+DEBUG 2025-03-25 17:39:08,006 Image Importing SunImagePlugin
+DEBUG 2025-03-25 17:39:08,008 Image Importing TgaImagePlugin
+DEBUG 2025-03-25 17:39:08,010 Image Importing TiffImagePlugin
+DEBUG 2025-03-25 17:39:08,010 Image Importing WebPImagePlugin
+DEBUG 2025-03-25 17:39:08,076 Image Importing WmfImagePlugin
+DEBUG 2025-03-25 17:39:08,085 Image Importing XbmImagePlugin
+DEBUG 2025-03-25 17:39:08,090 Image Importing XpmImagePlugin
+DEBUG 2025-03-25 17:39:08,093 Image Importing XVThumbImagePlugin
+INFO 2025-03-25 17:58:30,830 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-25 17:58:32,955 autoreload Watching for file changes with StatReloader
+INFO 2025-03-25 19:03:45,102 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-25 19:03:47,523 autoreload Watching for file changes with StatReloader
+INFO 2025-03-26 01:14:08,006 autoreload Watching for file changes with StatReloader
+WARNING 2025-03-26 01:14:21,032 log Not Found: /favicon.ico
+ERROR 2025-03-26 01:16:52,240 log Internal Server Error: /crm/users/
+Traceback (most recent call last):
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\decorators.py", line 33, in wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 1005, in user_list
+    return render(request, 'crm/users/list.html', {'users': []})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: crm/users/list.html
+INFO 2025-03-26 01:46:11,045 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-26 01:46:12,624 autoreload Watching for file changes with StatReloader
+ERROR 2025-03-26 01:49:36,332 log Internal Server Error: /crm/orders/create/
+Traceback (most recent call last):
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\decorators.py", line 33, in wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 1148, in create_order
+    'statuses': OrderStatus.objects.filter(is_active=True).order_by('sort_order')
+                ^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'OrderStatus' where it is not associated with a value
+INFO 2025-03-26 01:51:36,471 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-26 01:51:37,544 autoreload Watching for file changes with StatReloader
+ERROR 2025-03-26 01:52:58,106 log Internal Server Error: /crm/api/product/4/variants/
+Traceback (most recent call last):
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\decorators.py", line 33, in wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 1286, in product_variants_api
+    'variants': [
+                ^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 1287, in <listcomp>
+    {'id': variant.id, 'name': variant.name}
+                               ^^^^^^^^^^^^
+AttributeError: 'ProductVariant' object has no attribute 'name'
+INFO 2025-03-26 01:57:28,179 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-26 01:57:29,793 autoreload Watching for file changes with StatReloader
+INFO 2025-03-26 02:04:14,032 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-26 02:04:15,785 autoreload Watching for file changes with StatReloader
+ERROR 2025-03-26 02:05:24,237 log Internal Server Error: /crm/api/product/1/variants/
+Traceback (most recent call last):
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\decorators.py", line 33, in wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 1310, in product_variants_api
+    'variants': [
+                ^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 1311, in <listcomp>
+    {'id': variant.id, 'name': variant.name}
+                               ^^^^^^^^^^^^
+AttributeError: 'ProductVariant' object has no attribute 'name'
+INFO 2025-03-26 02:14:34,260 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-26 02:14:35,311 autoreload Watching for file changes with StatReloader
+INFO 2025-03-26 02:15:12,676 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-26 02:15:13,964 autoreload Watching for file changes with StatReloader
+ERROR 2025-03-26 02:16:23,480 log Internal Server Error: /crm/api/product/4/variants/
+Traceback (most recent call last):
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\decorators.py", line 33, in wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 1310, in product_variants_api
+    'variants': [
+                ^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 1311, in <listcomp>
+    {'id': variant.id, 'name': variant.name}
+                               ^^^^^^^^^^^^
+AttributeError: 'ProductVariant' object has no attribute 'name'
+INFO 2025-03-26 02:25:43,643 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-26 02:25:44,870 autoreload Watching for file changes with StatReloader
+INFO 2025-03-26 02:30:31,888 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-26 02:30:33,121 autoreload Watching for file changes with StatReloader
+INFO 2025-03-26 02:31:45,286 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\urls.py changed, reloading.
+INFO 2025-03-26 02:31:46,378 autoreload Watching for file changes with StatReloader
+INFO 2025-03-26 02:32:40,529 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\urls.py changed, reloading.
+INFO 2025-03-26 02:32:41,874 autoreload Watching for file changes with StatReloader
+INFO 2025-03-26 02:32:45,233 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-26 02:32:46,165 autoreload Watching for file changes with StatReloader

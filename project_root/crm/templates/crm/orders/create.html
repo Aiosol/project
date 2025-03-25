@@ -5,80 +5,147 @@
 
 {% block page_title %}Create Manual Order{% endblock %}
 
+{% block header_buttons %}
+<a href="{% url 'crm:order_list' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left"></i> Back to Orders
+</a>
+{% endblock %}
+
 {% block content %}
-<!-- Replace the existing form with a tabbed interface -->
-<div class="card shadow-sm mb-4">
+<div class="card shadow mb-4">
     <div class="card-header py-3">
         <h6 class="m-0 font-weight-bold text-primary">Create New Order</h6>
     </div>
     <div class="card-body">
-        <ul class="nav nav-tabs" id="orderTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="customer-tab" data-bs-toggle="tab" data-bs-target="#customer" type="button" role="tab">
-                    <i class="fas fa-user me-2"></i>Customer
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab">
-                    <i class="fas fa-shopping-cart me-2"></i>Products
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shipping" type="button" role="tab">
-                    <i class="fas fa-truck me-2"></i>Shipping
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="payment-tab" data-bs-toggle="tab" data-bs-target="#payment" type="button" role="tab">
-                    <i class="fas fa-credit-card me-2"></i>Payment
-                </button>
-            </li>
-        </ul>
-        
         <form method="post" id="create-order-form">
             {% csrf_token %}
-            <div class="tab-content p-3" id="orderTabContent">
-                <!-- Customer Tab -->
-                <div class="tab-pane fade show active" id="customer" role="tabpanel">
+            
+            <div class="row mb-4">
+                <!-- Customer Information -->
+                <div class="col-md-6">
+                    <h5 class="mb-3">Customer Information</h5>
+                    
                     <div class="mb-3">
-                        <label for="{{ form.customer.id_for_label }}" class="form-label">Select Customer</label>
-                        {{ form.customer }}
+                        <label for="id_customer_name" class="form-label">Customer Name</label>
+                        {{ form.customer_name }}
                     </div>
-                    <div class="text-end mt-3">
-                        <button type="button" class="btn btn-primary next-tab" data-next="products-tab">
-                            Next <i class="fas fa-arrow-right ms-1"></i>
-                        </button>
+                    
+                    <div class="mb-3">
+                        <label for="id_customer_email" class="form-label">Email (Optional)</label>
+                        {{ form.customer_email }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_customer_phone" class="form-label">Phone (Optional)</label>
+                        {{ form.customer_phone }}
                     </div>
                 </div>
                 
-                <!-- Products Tab -->
-                <div class="tab-pane fade" id="products" role="tabpanel">
-                    <!-- Product selection and quantity -->
+                <!-- Order Settings -->
+                <div class="col-md-6">
+                    <h5 class="mb-3">Order Settings</h5>
+                    
                     <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="mb-0">Order Items</h5>
-                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                                <i class="fas fa-plus"></i> Add Product
-                            </button>
+                        <label for="id_shipping_address" class="form-label">Shipping Address</label>
+                        {{ form.shipping_address }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_payment_method" class="form-label">Payment Method</label>
+                                {{ form.payment_method }}
+                            </div>
                         </div>
                         
-                        <div class="table-responsive">
-                            <table class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>Product</th>
-                                        <th>Variant</th>
-                                        <th>Price</th>
-                                        <th>Quantity</th>
-                                        <th>Total</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="order-items-table">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_payment_status" class="form-label">Payment Status</label>
+                                {{ form.payment_status }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_status" class="form-label">Order Status</label>
+                        {{ form.status }}
+                    </div>
+                </div>
+            </div>
+            
+            <hr>
+            
+            <!-- Product Selection -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5 class="mb-3">Order Items</h5>
+                    
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="product_id" class="form-label">Product</label>
+                                        <select class="form-select" id="product_id">
+                                            <option value="">Select Product</option>
+                                            {% for product in products %}
+                                            <option value="{{ product.id }}" data-price="{{ product.price }}">
+                                                {{ product.name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="variant_id" class="form-label">Variant</label>
+                                        <select class="form-select" id="variant_id" disabled>
+                                            <option value="">No Variants</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-2">
+                                    <div class="mb-3">
+                                        <label for="quantity" class="form-label">Quantity</label>
+                                        <input type="number" class="form-control" id="quantity" value="1" min="1">
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">&nbsp;</label>
+                                        <div>
+                                            <button type="button" id="add-item-btn" class="btn btn-primary">
+                                                <i class="fas fa-plus"></i> Add Item
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Items Table -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="items-table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Variant</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if items %}
                                     {% for item in items %}
                                     <tr>
                                         <td>{{ item.product.name }}</td>
-                                        <td>{{ item.variant.name|default:"N/A" }}</td>
+                                        <td>{{ item.variant.name|default:"—" }}</td>
                                         <td>৳{{ item.price|floatformat:2 }}</td>
                                         <td>{{ item.quantity }}</td>
                                         <td>৳{{ item.total|floatformat:2 }}</td>
@@ -88,102 +155,164 @@
                                             </a>
                                         </td>
                                     </tr>
-                                    {% empty %}
-                                    <tr id="no-items-row">
+                                    {% endfor %}
+                                {% else %}
+                                    <tr id="empty-row">
                                         <td colspan="6" class="text-center">No items added yet</td>
                                     </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between mt-3">
-                        <button type="button" class="btn btn-secondary prev-tab" data-prev="customer-tab">
-                            <i class="fas fa-arrow-left me-1"></i> Previous
-                        </button>
-                        <button type="button" class="btn btn-primary next-tab" data-next="shipping-tab">
-                            Next <i class="fas fa-arrow-right ms-1"></i>
-                        </button>
+                                {% endif %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="4" class="text-end"><strong>Total:</strong></td>
+                                    <td>৳{{ total|floatformat:2 }}</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
                 </div>
-                
-                <!-- Shipping Tab -->
-                <div class="tab-pane fade" id="shipping" role="tabpanel">
-                    <div class="mb-3">
-                        <label for="{{ form.shipping_address.id_for_label }}" class="form-label">Shipping Address</label>
-                        {{ form.shipping_address }}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.billing_address.id_for_label }}" class="form-label">Billing Address</label>
-                        {{ form.billing_address }}
-                    </div>
-                    
-                    <div class="d-flex justify-content-between mt-3">
-                        <button type="button" class="btn btn-secondary prev-tab" data-prev="products-tab">
-                            <i class="fas fa-arrow-left me-1"></i> Previous
-                        </button>
-                        <button type="button" class="btn btn-primary next-tab" data-next="payment-tab">
-                            Next <i class="fas fa-arrow-right ms-1"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Payment Tab -->
-                <div class="tab-pane fade" id="payment" role="tabpanel">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.payment_method.id_for_label }}" class="form-label">Payment Method</label>
-                            {{ form.payment_method }}
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.payment_status.id_for_label }}" class="form-label">Payment Status</label>
-                            {{ form.payment_status }}
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="{{ form.status.id_for_label }}" class="form-label">Order Status</label>
-                        {{ form.status }}
-                    </div>
-                    
-                    <div class="d-flex justify-content-between mt-3">
-                        <button type="button" class="btn btn-secondary prev-tab" data-prev="shipping-tab">
-                            <i class="fas fa-arrow-left me-1"></i> Previous
-                        </button>
-                        <button type="submit" class="btn btn-success">
-                            <i class="fas fa-save me-1"></i> Create Order
-                        </button>
-                    </div>
-                </div>
+            </div>
+            
+            <hr>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'crm:order_list' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-success" {% if not items %}disabled{% endif %}>
+                    <i class="fas fa-save"></i> Create Order
+                </button>
             </div>
         </form>
     </div>
 </div>
+
+<!-- Hidden form for adding items -->
+<form id="add-item-form" action="{% url 'crm:add_order_item' %}" method="post" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="product_id" id="add_product_id">
+    <input type="hidden" name="variant_id" id="add_variant_id">
+    <input type="hidden" name="quantity" id="add_quantity">
+    <input type="hidden" name="price" id="add_price">
+</form>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Load variants when product is selected
+    // When product is selected, fetch variants
     document.getElementById('product_id').addEventListener('change', function() {
         const productId = this.value;
-        if (!productId) return;
+        const variantSelect = document.getElementById('variant_id');
         
+        // Clear and disable variant select
+        variantSelect.innerHTML = '<option value="">Loading...</option>';
+        variantSelect.disabled = true;
+        
+        if (!productId) {
+            variantSelect.innerHTML = '<option value="">No Variants</option>';
+            return;
+        }
+        
+        // Fetch variants for this product
         fetch(`/crm/api/product/${productId}/variants/`)
             .then(response => response.json())
             .then(data => {
-                const variantSelect = document.getElementById('variant_id');
-                variantSelect.innerHTML = '<option value="">No Variant</option>';
-                
-                data.variants.forEach(variant => {
-                    const option = document.createElement('option');
-                    option.value = variant.id;
-                    option.textContent = variant.name;
-                    variantSelect.appendChild(option);
-                });
+                if (data.success) {
+                    // Populate variants
+                    variantSelect.innerHTML = '<option value="">No Variant</option>';
+                    
+                    if (data.variants && data.variants.length > 0) {
+                        data.variants.forEach(variant => {
+                            const option = document.createElement('option');
+                            option.value = variant.id;
+                            option.dataset.price = variant.price || data.product.price;
+                            option.textContent = variant.name + (variant.price ? ` (৳${variant.price.toFixed(2)})` : '');
+                            variantSelect.appendChild(option);
+                        });
+                        variantSelect.disabled = false;
+                    } else {
+                        variantSelect.innerHTML = '<option value="">No Variants</option>';
+                    }
+                } else {
+                    console.error('Error fetching variants:', data.error);
+                    variantSelect.innerHTML = '<option value="">Error loading variants</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                variantSelect.innerHTML = '<option value="">Error loading variants</option>';
             });
     });
+
+// Add item button
+document.getElementById('add-item-btn').addEventListener('click', function() {
+    const productSelect = document.getElementById('product_id');
+    const variantSelect = document.getElementById('variant_id');
+    const quantityInput = document.getElementById('quantity');
+    
+    if (!productSelect.value) {
+        alert('Please select a product');
+        return;
+    }
+    
+    // Get price from selected variant or product
+    let price;
+    if (variantSelect.value && !variantSelect.disabled) {
+        const selectedVariant = variantSelect.options[variantSelect.selectedIndex];
+        price = selectedVariant.dataset.price;
+    } else {
+        const selectedProduct = productSelect.options[productSelect.selectedIndex];
+        price = selectedProduct.dataset.price;
+    }
+    
+    if (!price) {
+        price = 0;
+    }
+    
+    // Fill hidden form and submit
+    document.getElementById('add_product_id').value = productSelect.value;
+    document.getElementById('add_variant_id').value = variantSelect.value;
+    document.getElementById('add_quantity').value = quantityInput.value;
+    document.getElementById('add_price').value = price;
+    
+    document.getElementById('add-item-form').submit();
+});
+
+// Form validation
+document.getElementById('create-order-form').addEventListener('submit', function(e) {
+    const customerName = document.getElementById('id_customer_name').value;
+    const shippingAddress = document.getElementById('id_shipping_address').value;
+    const items = {{ items|length }};
+    
+    if (!customerName) {
+        e.preventDefault();
+        alert('Please enter customer name');
+        return false;
+    }
+    
+    if (!shippingAddress) {
+        e.preventDefault();
+        alert('Please enter shipping address');
+        return false;
+    }
+    
+    if (items === 0) {
+        e.preventDefault();
+        alert('Please add at least one product to the order');
+        return false;
+    }
+});
+
+// Enable Create Order button when items exist
+function updateCreateOrderButton() {
+    const hasItems = {{ items|length }} > 0;
+    const submitBtn = document.querySelector('#create-order-form button[type="submit"]');
+    
+    if (submitBtn) {
+        submitBtn.disabled = !hasItems;
+    }
+}
+
+// Update on page load
+document.addEventListener('DOMContentLoaded', updateCreateOrderButton);
 </script>
 {% endblock %}

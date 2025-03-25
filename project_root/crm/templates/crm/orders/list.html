@@ -3,19 +3,48 @@
 
 {% block title %}Orders{% endblock %}
 
+{% block page_title %}Orders{% endblock %}
+
+{% block header_buttons %}
+<a href="{% url 'crm:create_order' %}" class="btn btn-sm btn-primary me-2">
+    <i class="fas fa-plus"></i> Create Order
+</a>
+<div class="btn-group me-2">
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
+        <i class="fas fa-filter"></i> Filter
+    </button>
+    <a href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'export' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}export=true" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-download"></i> Export
+    </a>
+</div>
+{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3">Orders</h1>
-    <div>
-        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
-            <i class="fas fa-filter"></i> Filter
-        </button>
-        <a href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'export' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}export=true" class="btn btn-outline-secondary">
-            <i class="fas fa-download"></i> Export
-        </a>
+<!-- Bulk Actions Toolbar -->
+<div id="bulk-actions-toolbar" class="card shadow mb-3" style="display: none;">
+    <div class="card-body py-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <span id="selected-count" class="me-3 fw-bold">0 orders selected</span>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#bulkStatusModal">
+                        <i class="fas fa-tag"></i> Update Status
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary bulk-export-btn">
+                        <i class="fas fa-download"></i> Export Selected
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger bulk-delete-btn">
+                        <i class="fas fa-trash"></i> Delete Selected
+                    </button>
+                </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="clear-selection">
+                <i class="fas fa-times"></i> Clear Selection
+            </button>
+        </div>
     </div>
 </div>
-
+ 
 <!-- Filter Modal -->
 <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -59,44 +88,114 @@
     </div>
 </div>
 
+<!-- Bulk Status Update Modal -->
+<div class="modal fade" id="bulkStatusModal" tabindex="-1" aria-labelledby="bulkStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bulkStatusModalLabel">Update Order Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="bulk-status-form" method="post" action="{% url 'crm:bulk_update_status' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" name="order_ids" id="bulk-status-order-ids">
+                    <div class="mb-3">
+                        <label for="bulk-status" class="form-label">Select New Status</label>
+                        <select class="form-select" id="bulk-status" name="status">
+                            {% for status in statuses %}
+                            <option value="{{ status.id }}">{{ status.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Orders Table -->
 <div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Order List</h6>
+    </div>
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-bordered table-hover" id="ordersTable" width="100%" cellspacing="0">
                 <thead>
-                    <tr>
-                        <th>Order ID</th>
+                    <th style="width: 40px;">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="select-all-orders">
+                        </div>
+                    </th>
+                        <th>Order #</th>
                         <th>Customer</th>
                         <th>Date</th>
                         <th>Total</th>
-                        <th>Payment</th>
-                        <th>Status</th>
+                        <th>Items</th>
+                        <th>Payment Method</th>
+                        <th>Payment Status</th>
+                        <th>Order Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for order in orders %}
                     <tr>
-                        <td>#{{ order.id }}</td>
-                        <td>{{ order.customer.user.get_full_name }}</td>
+                        <td>
+                            <div class="form-check">
+                                <input class="form-check-input order-checkbox" type="checkbox" value="{{ order.id }}">
+                            </div>
+                        </td>
+                        <td>{{ order.order_id_display }}</td>
+                        <td>{{ order.customer_name }}</td>
                         <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
                         <td>৳{{ order.total_amount|floatformat:2 }}</td>
-                        <td>{{ order.payment_method }}</td>
+                        <td>{{ order.items_count }}</td>
+                        <td>{{ order.payment_method|default:"N/A" }}</td>
+                        <td>
+                            <span class="badge {% if order.payment_status == 'paid' %}bg-success{% elif order.payment_status == 'pending' %}bg-warning{% elif order.payment_status == 'failed' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                {{ order.payment_status_display }}
+                            </span>
+                        </td>
                         <td>
                             <span class="badge" style="background-color: {{ order.status.color_code }}">
                                 {{ order.status.name }}
                             </span>
                         </td>
                         <td>
-                            <a href="{% url 'crm:order_detail' order.id %}" class="btn btn-sm btn-info">
-                                <i class="fas fa-eye"></i>
-                            </a>
+                            <div class="btn-group">
+                                <a href="{% url 'crm:order_detail' order.id %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><h6 class="dropdown-header">Update Status</h6></li>
+                                    {% for status in statuses %}
+                                    <li>
+                                        <form method="post" action="{% url 'crm:update_order_status' order.id %}" style="margin:0">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status" value="{{ status.id }}">
+                                            <button type="submit" class="dropdown-item {% if order.status.name == status.name %}active{% endif %}">
+                                                <span class="badge me-2" style="background-color: {{ status.color_code }}">•</span>
+                                                {{ status.name }}
+                                            </button>
+                                        </form>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" class="text-center">No orders found</td>
+                        <td colspan="10" class="text-center">No orders found</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -109,24 +208,96 @@
 {% block extra_js %}
 <script>
     $(document).ready(function() {
-        $('#ordersTable').DataTable({
-            order: [[0, 'desc']]
+        // Select all functionality
+        $('#select-all-orders').on('change', function() {
+            $('.order-checkbox').prop('checked', $(this).prop('checked'));
+            updateBulkActionsToolbar();
+        });
+        
+        // Individual checkbox change
+        $('.order-checkbox').on('change', function() {
+            updateBulkActionsToolbar();
+        });
+        
+        // Update bulk actions toolbar visibility
+        function updateBulkActionsToolbar() {
+            const selectedCount = $('.order-checkbox:checked').length;
+            
+            if (selectedCount > 0) {
+                $('#bulk-actions-toolbar').show();
+                $('#selected-count').text(selectedCount + ' order' + (selectedCount !== 1 ? 's' : '') + ' selected');
+            } else {
+                $('#bulk-actions-toolbar').hide();
+            }
+        }
+        
+        // Function to get selected order IDs
+        function getSelectedOrderIds() {
+            return $('.order-checkbox:checked').map(function() {
+                return $(this).val();
+            }).get();
+        }
+        
+        // Bulk status update modal
+        $('#bulkStatusModal').on('show.bs.modal', function() {
+            $('#bulk-status-order-ids').val(getSelectedOrderIds().join(','));
+        });
+        
+        // Bulk export button
+        $('.bulk-export-btn').on('click', function() {
+            const orderIds = getSelectedOrderIds();
+            
+            if (orderIds.length === 0) {
+                alert('Please select at least one order to export');
+                return;
+            }
+            
+            window.location.href = '/crm/orders/export/?ids=' + orderIds.join(',');
+        });
+        
+        // Bulk delete button
+        $('.bulk-delete-btn').on('click', function() {
+            const orderIds = getSelectedOrderIds();
+            
+            if (orderIds.length === 0) {
+                alert('Please select at least one order to delete');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete ' + orderIds.length + ' orders? This action cannot be undone.')) {
+                // Get CSRF token
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                // Send AJAX request
+                fetch('/crm/orders/bulk-delete/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({ order_ids: orderIds })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        window.location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while trying to delete orders');
+                });
+            }
+        });
+        
+        // Clear selection button
+        $('#clear-selection').on('click', function() {
+            $('.order-checkbox, #select-all-orders').prop('checked', false);
+            updateBulkActionsToolbar();
         });
     });
 </script>
-
-<!-- In crm/templates/crm/orders/list.html -->
-{% block header_buttons %}
-<a href="{% url 'crm:create_order' %}" class="btn btn-sm btn-primary me-2">
-    <i class="fas fa-plus"></i> Create Manual Order
-</a>
-<div class="btn-group me-2">
-    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
-        <i class="fas fa-filter"></i> Filter
-    </button>
-    <a href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'export' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}export=true" class="btn btn-sm btn-outline-secondary">
-        <i class="fas fa-download"></i> Export
-    </a>
-</div>
 {% endblock %}
- 
