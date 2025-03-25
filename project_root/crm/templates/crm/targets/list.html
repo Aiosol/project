@@ -1,0 +1,102 @@
+{% extends 'crm/base.html' %}
+{% load static %}
+
+{% block title %}Sales Targets{% endblock %}
+
+{% block page_title %}Sales Targets{% endblock %}
+
+{% block header_buttons %}
+<a href="{% url 'crm:create_sales_target' %}" class="btn btn-primary btn-sm">
+    <i class="fas fa-plus"></i> Create Target
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Sales Targets</h6>
+        <div class="btn-group">
+            <a href="?status=active" class="btn btn-sm btn-outline-primary {% if active_filter == 'active' %}active{% endif %}">Active</a>
+            <a href="?status=completed" class="btn btn-sm btn-outline-primary {% if active_filter == 'completed' %}active{% endif %}">Completed</a>
+            <a href="?status=archived" class="btn btn-sm btn-outline-primary {% if active_filter == 'archived' %}active{% endif %}">Archived</a>
+            <a href="?status=all" class="btn btn-sm btn-outline-primary {% if active_filter == 'all' %}active{% endif %}">All</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="targetsTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Target</th>
+                        <th>Actual</th>
+                        <th>Progress</th>
+                        <th>Period</th>
+                        <th>Date Range</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for target in targets %}
+                    <tr>
+                        <td>{{ target.name }}</td>
+                        <td>৳{{ target.target_amount|floatformat:2 }}</td>
+                        <td>৳{{ target.actual_amount|floatformat:2 }}</td>
+                        <td class="text-center">
+                            <div class="progress" style="height: 12px;">
+                                <div class="progress-bar {% if target.get_progress_percentage < 50 %}bg-danger{% elif target.get_progress_percentage < 75 %}bg-warning{% else %}bg-success{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ target.get_progress_percentage }}%;"
+                                     aria-valuenow="{{ target.get_progress_percentage }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                </div>
+                            </div>
+                            <small>{{ target.get_progress_percentage }}%</small>
+                        </td>
+                        <td>{{ target.get_period_display }}</td>
+                        <td>{{ target.start_date|date:"M d, Y" }} to {{ target.end_date|date:"M d, Y" }}</td>
+                        <td>
+                            {% if target.is_active %}
+                                {% if target.end_date < today %}
+                                    <span class="badge bg-secondary">Ended</span>
+                                {% else %}
+                                    <span class="badge bg-success">Active</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'crm:edit_sales_target' target.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'crm:delete_sales_target' target.id %}" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">No sales targets found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#targetsTable').DataTable({
+            "order": [[5, "desc"]]
+        });
+    });
+</script>
+{% endblock %}

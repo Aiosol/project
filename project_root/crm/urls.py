@@ -5,9 +5,12 @@ from . import views
 app_name = 'crm'
 
 urlpatterns = [
+
     path('', views.dashboard, name='dashboard'),
+    path('login/', views.crm_login, name='login'),
+
     path('orders/', views.order_list, name='order_list'),
-    path('customers/', views.customer_list, name='customer_list'),
+     
     path('inventory/', views.inventory_list, name='inventory_list'),
     path('reports/', views.reports_dashboard, name='reports_dashboard'),
      
@@ -23,9 +26,13 @@ urlpatterns = [
     path('orders/<int:order_id>/status/', views.update_order_status, name='update_order_status'),
     path('orders/<int:order_id>/notes/', views.add_order_note, name='add_order_note'),
     
-    # Customer management
      
-    path('customers/<int:customer_id>/', views.customer_detail, name='customer_detail'),
+     
+  # Customer management
+path('customers/', views.customer_list, name='customer_list'),
+path('customers/<str:customer_id>/', views.customer_detail, name='customer_detail'),
+path('customers/<str:customer_id>/update/', views.update_customer, name='update_customer'),
+ 
     
     # Inventory management
      
@@ -66,6 +73,7 @@ path('debug/', views.debug_view, name='debug'),
 path('orders/bulk-status/', views.bulk_update_status, name='bulk_update_status'),
 path('orders/bulk-delete/', views.bulk_delete_orders, name='bulk_delete_orders'),
 path('orders/export/', views.export_orders, name='export_orders'),
+
 ]
 
   

@@ -21,7 +21,8 @@ from .decorators import crm_login_required
 from .models import CRMUser, OrderStatus, SalesTarget, OrderNote
 from orders.models import Order, OrderItem
 from products.models import Product, ProductVariant
-
+from accounts.models import User 
+from django.db import models
 # Authentication Views
 def crm_login(request):
     if request.method == 'POST':
@@ -412,12 +413,372 @@ def add_order_note(request, order_id):
 # Customer Management Views
 @crm_login_required
 def customer_list(request):
-    return render(request, 'crm/customers/list.html', {'customers': []})
+    """View for listing all customers with optional filtering"""
+    # Get filter parameters
+    customer_type = request.GET.get('customer_type', '')
+    query = request.GET.get('q', '')
+    show_type = request.GET.get('show', 'all')  # all, registered, guest
+    
+    from django.contrib.auth import get_user_model
+    from orders.models import Order
+    from .models import Customer
+    from django.db.models import Count, Sum, Max, F, Value, CharField, Q
+    from django.db.models.functions import Concat
+    from django.utils import timezone
+    
+    User = get_user_model()
+    
+    # Prepare combined result list
+    all_customers = []
+    
+    # PART 1: Get registered users (with or without orders)
+    if show_type in ['all', 'registered']:
+        registered_users = User.objects.annotate(
+            total_orders=Count('orders', distinct=True),
+            lifetime_value=Sum('orders__total_amount'),
+            last_purchase_date=Max('orders__created_at')
+        )
+        
+        # Apply search filters if any
+        if query:
+            registered_users = registered_users.filter(
+                Q(username__icontains=query) |
+                Q(first_name__icontains=query) |
+                Q(last_name__icontains=query) |
+                Q(email__icontains=query)
+            )
+        
+        # Process each registered user
+        for user in registered_users:
+            # Get or create CRM customer record
+            customer, created = Customer.objects.get_or_create(
+                user=user,
+                defaults={
+                    'customer_type': 'regular',
+                    'total_orders': user.total_orders or 0,
+                    'lifetime_value': user.lifetime_value or 0,
+                    'last_purchase_date': user.last_purchase_date,
+                    'email_opt_in': True,
+                    'sms_opt_in': True
+                }
+            )
+            
+            # Always update to ensure data is current
+            if not created:
+                customer.total_orders = user.total_orders or 0
+                customer.lifetime_value = user.lifetime_value or 0
+                customer.last_purchase_date = user.last_purchase_date
+                customer.save()
+            
+            # Skip if filtering by customer type and doesn't match
+            if customer_type and customer.customer_type != customer_type:
+                continue
+                
+            all_customers.append({
+                'id': f"reg_{user.id}",  # Prefix to distinguish from guest customers
+                'user': user,
+                'customer': customer,
+                'email': user.email,
+                'name': user.get_full_name() or user.username,
+                'total_orders': user.total_orders or 0,
+                'lifetime_value': user.lifetime_value or 0,
+                'last_purchase_date': user.last_purchase_date,
+                'is_registered': True,
+                'customer_type': customer.customer_type,
+                'get_customer_type_display': customer.get_customer_type_display()
+            })
+    
+    # PART 2: Get guest orders (grouped by shipping info)
+    if show_type in ['all', 'guest']:
+        # Find orders without associated user accounts
+        guest_orders = Order.objects.filter(
+            customer__isnull=True,
+            shipping_address__isnull=False  # Ensure shipping address exists
+        ).exclude(shipping_address='')
+        
+        # Apply search filter if any
+        if query:
+            guest_orders = guest_orders.filter(
+                shipping_address__icontains=query
+            )
+        
+        # Create a dictionary to group orders by similar shipping info
+        guest_customers = {}
+        
+        for order in guest_orders:
+            # Extract email from shipping address if possible
+            import re
+            email_match = re.search(r'Email: ([^\n]+)', order.shipping_address)
+            name_match = re.search(r'^([^\n]+)', order.shipping_address)
+            
+            guest_email = email_match.group(1) if email_match else f"guest_{order.id}@example.com"
+            guest_name = name_match.group(1) if name_match else f"Guest Customer"
+            
+            if guest_email not in guest_customers:
+                guest_customers[guest_email] = {
+                    'name': guest_name,
+                    'email': guest_email,
+                    'orders': [],
+                    'total_orders': 0,
+                    'lifetime_value': 0,
+                    'last_purchase_date': None
+                }
+            
+            guest_customers[guest_email]['orders'].append(order)
+            guest_customers[guest_email]['total_orders'] += 1
+            guest_customers[guest_email]['lifetime_value'] += order.total_amount or 0
+            
+            # Update last purchase date if needed
+            if (not guest_customers[guest_email]['last_purchase_date'] or 
+                (order.created_at and guest_customers[guest_email]['last_purchase_date'] < order.created_at)):
+                guest_customers[guest_email]['last_purchase_date'] = order.created_at
+        
+        # Add guest customers to the result list
+        for email, data in guest_customers.items():
+            all_customers.append({
+                'id': f"guest_{email}",  # Using email as identifier
+                'user': None,
+                'customer': None,  # No Customer model for guests
+                'email': email,
+                'name': data['name'],
+                'total_orders': data['total_orders'],
+                'lifetime_value': data['lifetime_value'],
+                'last_purchase_date': data['last_purchase_date'],
+                'is_registered': False,
+                'customer_type': 'guest',
+                'get_customer_type_display': 'Guest'
+            })
+    
+    # Calculate status for each customer
+    today = timezone.now().date()
+    for customer in all_customers:
+        if customer['last_purchase_date']:
+            try:
+                days_since = (today - customer['last_purchase_date'].date()).days
+                if days_since <= 30:
+                    customer['status'] = 'active'
+                    customer['status_display'] = 'Active'
+                    customer['status_color'] = 'success'
+                elif days_since <= 90:
+                    customer['status'] = 'at_risk'
+                    customer['status_display'] = 'At Risk'
+                    customer['status_color'] = 'warning'
+                else:
+                    customer['status'] = 'inactive'
+                    customer['status_display'] = 'Inactive'
+                    customer['status_color'] = 'danger'
+            except (AttributeError, TypeError):
+                # Handle any issues with date calculation
+                customer['status'] = 'unknown'
+                customer['status_display'] = 'Unknown'
+                customer['status_color'] = 'secondary'
+        else:
+            customer['status'] = 'new'
+            customer['status_display'] = 'New'
+            customer['status_color'] = 'secondary'
+    
+    # Handle export functionality if requested
+    if request.GET.get('export') == 'true':
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="customers_export.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(['ID', 'Name', 'Email', 'Type', 'Orders', 'Lifetime Value', 'Last Purchase', 'Status'])
+        
+        for customer in all_customers:
+            writer.writerow([
+                customer['id'],
+                customer['name'],
+                customer['email'],
+                customer['get_customer_type_display'],
+                customer['total_orders'],
+                customer['lifetime_value'],
+                customer['last_purchase_date'].strftime('%Y-%m-%d') if customer['last_purchase_date'] else 'Never',
+                customer['status_display']
+            ])
+        
+        return response
+    
+    # Pass context data to template
+    context = {
+        'customers': all_customers,
+        'filters': {
+            'customer_type': customer_type,
+            'query': query,
+            'show_type': show_type
+        }
+    }
+    
+    return render(request, 'crm/customers/list.html', context)
 
 
 @crm_login_required
 def customer_detail(request, customer_id):
-    return render(request, 'crm/customers/detail.html', {'customer': {}})
+    """View for displaying detailed customer information - handles both registered and guest customers"""
+    from .models import Customer
+    from orders.models import Order
+    from django.utils import timezone
+    from datetime import timedelta
+    from django.http import Http404
+    
+    # Parse customer_id to determine type (registered or guest)
+    is_registered = customer_id.startswith('reg_')
+    is_guest = customer_id.startswith('guest_')
+    
+    if is_registered:
+        # Handle registered customer
+        user_id = customer_id.replace('reg_', '')
+        customer = get_object_or_404(Customer.objects.select_related('user'), user__id=user_id)
+        user = customer.user
+        
+        # Get orders for this registered customer
+        orders = Order.objects.filter(customer=user).select_related('status').order_by('-created_at')
+        
+        # Update customer metrics
+        customer.total_orders = orders.count()
+        customer.lifetime_value = orders.aggregate(total=Sum('total_amount'))['total'] or 0
+        
+        # Update last purchase date if needed
+        last_order = orders.first()
+        if last_order:
+            customer.last_purchase_date = last_order.created_at
+            
+        # Save updated metrics
+        customer.save()
+        
+        email = user.email
+        name = user.get_full_name() or user.username
+        customer_type = customer.get_customer_type_display()
+        
+    elif is_guest:
+        # Handle guest customer
+        email = customer_id.replace('guest_', '')
+        
+        # Get orders for this guest customer based on email in shipping address
+        orders = Order.objects.filter(
+            customer__isnull=True,
+            shipping_address__icontains=f"Email: {email}"
+        ).select_related('status').order_by('-created_at')
+        
+        if not orders.exists():
+            raise Http404("Guest customer not found")
+            
+        # Get the most recent order for name and other details
+        latest_order = orders.first()
+        
+        # Extract name from shipping address
+        import re
+        name_match = re.search(r'^([^\n]+)', latest_order.shipping_address)
+        name = name_match.group(1) if name_match else "Guest Customer"
+        
+        # Create a placeholder customer object with metrics
+        from types import SimpleNamespace
+        customer = SimpleNamespace(
+            user=None,
+            total_orders=orders.count(),
+            lifetime_value=orders.aggregate(total=Sum('total_amount'))['total'] or 0,
+            last_purchase_date=latest_order.created_at,
+            customer_type='guest',
+            get_customer_type_display=lambda: 'Guest',
+            email_opt_in=False,
+            sms_opt_in=False,
+            notes="Guest customer (no account)"
+        )
+        customer_type = 'Guest'
+    else:
+        # Direct numeric ID (for backward compatibility)
+        try:
+            customer_id = int(customer_id)
+            customer = get_object_or_404(Customer.objects.select_related('user'), id=customer_id)
+            user = customer.user
+            
+            # Get orders for this registered customer
+            orders = Order.objects.filter(customer=user).select_related('status').order_by('-created_at')
+            
+            # Update customer metrics
+            customer.total_orders = orders.count()
+            customer.lifetime_value = orders.aggregate(total=Sum('total_amount'))['total'] or 0
+            
+            # Update last purchase date if needed
+            last_order = orders.first()
+            if last_order:
+                customer.last_purchase_date = last_order.created_at
+                
+            # Save updated metrics
+            customer.save()
+            
+            email = user.email
+            name = user.get_full_name() or user.username
+            customer_type = customer.get_customer_type_display()
+            is_registered = True
+        except (ValueError, TypeError):
+            raise Http404("Customer not found")
+    
+    # Calculate metrics (same for both types)
+    total_spent = customer.lifetime_value
+    total_orders = customer.total_orders
+    avg_order_value = total_spent / total_orders if total_orders > 0 else 0
+    
+    # Calculate days since first and last order
+    first_order = orders.order_by('created_at').first()
+    last_order = orders.order_by('-created_at').first()
+    
+    days_since_first_order = (timezone.now().date() - first_order.created_at.date()).days if first_order else 0
+    days_since_last_order = (timezone.now().date() - last_order.created_at.date()).days if last_order else 999
+    
+    # Calculate purchase frequency (average days between orders)
+    if total_orders > 1 and first_order and last_order:
+        date_range = (last_order.created_at.date() - first_order.created_at.date()).days
+        purchase_frequency = date_range / (total_orders - 1)
+    else:
+        purchase_frequency = 0
+    
+    # Pass context data to template
+    context = {
+        'customer': customer,
+        'orders': orders,
+        'total_spent': total_spent,
+        'avg_order_value': avg_order_value,
+        'days_since_last_order': days_since_last_order,
+        'purchase_frequency': purchase_frequency,
+        'is_registered': is_registered if 'is_registered' in locals() else True,
+        'email': email,
+        'name': name,
+        'customer_type': customer_type
+    }
+    
+    return render(request, 'crm/customers/detail.html', context)
+
+
+@require_POST
+@crm_login_required
+def update_customer(request, customer_id):
+    """Update customer details"""
+    from .models import Customer
+    
+    # Only registered customers can be updated
+    if not customer_id.startswith('reg_'):
+        messages.error(request, "Cannot update guest customer")
+        return redirect('crm:customer_list')
+    
+    user_id = customer_id.replace('reg_', '')
+    customer = get_object_or_404(Customer, user__id=user_id)
+    
+    # Update customer fields from form data
+    customer_type = request.POST.get('customer_type')
+    email_opt_in = request.POST.get('email_opt_in') == 'on'
+    sms_opt_in = request.POST.get('sms_opt_in') == 'on'
+    notes = request.POST.get('notes', '')
+    
+    # Update the customer object
+    customer.customer_type = customer_type
+    customer.email_opt_in = email_opt_in
+    customer.sms_opt_in = sms_opt_in
+    customer.notes = notes
+    customer.save()
+    
+    messages.success(request, "Customer details updated successfully")
+    return redirect('crm:customer_detail', customer_id=customer_id)
 
 
 # Inventory Management Views

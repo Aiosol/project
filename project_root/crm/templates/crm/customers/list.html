@@ -7,13 +7,22 @@
 
 {% block header_buttons %}
 <div class="btn-group me-2">
-    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
-        <i class="fas fa-filter"></i> Filter
-    </button>
-    <a href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'export' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}export=true" class="btn btn-sm btn-outline-secondary">
-        <i class="fas fa-download"></i> Export
+    <a href="{% url 'crm:customer_list' %}?show=all{% if request.GET.customer_type %}&customer_type={{ request.GET.customer_type }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="btn btn-sm btn-outline-secondary {% if filters.show_type == 'all' or not filters.show_type %}active{% endif %}">
+        All Customers
+    </a>
+    <a href="{% url 'crm:customer_list' %}?show=registered{% if request.GET.customer_type %}&customer_type={{ request.GET.customer_type }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="btn btn-sm btn-outline-secondary {% if filters.show_type == 'registered' %}active{% endif %}">
+        Registered
+    </a>
+    <a href="{% url 'crm:customer_list' %}?show=guest{% if request.GET.customer_type %}&customer_type={{ request.GET.customer_type }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="btn btn-sm btn-outline-secondary {% if filters.show_type == 'guest' %}active{% endif %}">
+        Guest
     </a>
 </div>
+<button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
+    <i class="fas fa-filter"></i> Filter
+</button>
+<a href="?{% if request.GET %}{% for key, value in request.GET.items %}{% if key != 'export' %}{{ key }}={{ value }}&{% endif %}{% endfor %}{% endif %}export=true" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-download"></i> Export
+</a>
 {% endblock %}
 
 {% block content %}
@@ -27,6 +36,11 @@
             </div>
             <div class="modal-body">
                 <form id="filterForm" method="get">
+                    <!-- Preserve the show type when filtering -->
+                    {% if filters.show_type %}
+                    <input type="hidden" name="show" value="{{ filters.show_type }}">
+                    {% endif %}
+                    
                     <div class="mb-3">
                         <label for="customer_type" class="form-label">Customer Type</label>
                         <select class="form-select" id="customer_type" name="customer_type">
@@ -34,6 +48,9 @@
                             <option value="regular" {% if filters.customer_type == 'regular' %}selected{% endif %}>Regular</option>
                             <option value="vip" {% if filters.customer_type == 'vip' %}selected{% endif %}>VIP</option>
                             <option value="wholesale" {% if filters.customer_type == 'wholesale' %}selected{% endif %}>Wholesale</option>
+                            {% if filters.show_type != 'registered' %}
+                            <option value="guest" {% if filters.customer_type == 'guest' %}selected{% endif %}>Guest</option>
+                            {% endif %}
                         </select>
                     </div>
                     <div class="mb-3">
@@ -43,7 +60,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <a href="{% url 'crm:customer_list' %}" class="btn btn-secondary">Clear Filters</a>
+                <a href="{% url 'crm:customer_list' %}{% if filters.show_type %}?show={{ filters.show_type }}{% endif %}" class="btn btn-secondary">Clear Filters</a>
                 <button type="submit" form="filterForm" class="btn btn-primary">Apply Filters</button>
             </div>
         </div>
@@ -60,25 +77,25 @@
             <table class="table table-bordered" id="customersTable" width="100%" cellspacing="0">
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Name</th>
                         <th>Email</th>
                         <th>Type</th>
                         <th>Orders</th>
                         <th>Lifetime Value</th>
                         <th>Last Order</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for customer in customers %}
                     <tr>
-                        <td>{{ customer.id }}</td>
-                        <td>{{ customer.user.get_full_name }}</td>
-                        <td>{{ customer.user.email }}</td>
+                        <td>{{ customer.name }}</td>
+                        <td>{{ customer.email }}</td>
                         <td>
-                            <span class="badge bg-{% if customer.customer_type == 'regular' %}secondary{% elif customer.customer_type == 'vip' %}primary{% else %}success{% endif %}">
+                            <span class="badge {% if customer.is_registered %}bg-{% if customer.customer_type == 'regular' %}secondary{% elif customer.customer_type == 'vip' %}primary{% elif customer.customer_type == 'wholesale' %}success{% else %}info{% endif %}{% else %}bg-warning{% endif %}">
                                 {{ customer.get_customer_type_display }}
+                                {% if not customer.is_registered %}(Guest){% endif %}
                             </span>
                         </td>
                         <td>{{ customer.total_orders }}</td>
@@ -89,6 +106,9 @@
                             {% else %}
                             Never
                             {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ customer.status_color }}">{{ customer.status_display }}</span>
                         </td>
                         <td>
                             <a href="{% url 'crm:customer_detail' customer.id %}" class="btn btn-sm btn-info">
@@ -112,7 +132,7 @@
 <script>
     $(document).ready(function() {
         $('#customersTable').DataTable({
-            order: [[5, 'desc']]  // Sort by lifetime value
+            order: [[4, 'desc']]  // Sort by lifetime value (descending)
         });
     });
 </script>

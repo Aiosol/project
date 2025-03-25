@@ -1,17 +1,19 @@
 {% extends 'crm/base.html' %}
 {% load static %}
 
-{% block title %}Customer: {{ customer.user.get_full_name }}{% endblock %}
+{% block title %}Customer: {{ name }}{% endblock %}
 
-{% block page_title %}Customer: {{ customer.user.get_full_name }}{% endblock %}
+{% block page_title %}Customer: {{ name }}{% endblock %}
 
 {% block header_buttons %}
 <a href="{% url 'crm:customer_list' %}" class="btn btn-sm btn-outline-secondary me-2">
     <i class="fas fa-arrow-left"></i> Back to Customers
 </a>
+{% if is_registered %}
 <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editCustomerModal">
     <i class="fas fa-edit"></i> Edit
 </button>
+{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -25,16 +27,23 @@
             <div class="card-body">
                 <div class="text-center mb-4">
                     <i class="fas fa-user-circle fa-7x text-gray-300 mb-3"></i>
-                    <h4>{{ customer.user.get_full_name }}</h4>
-                    <span class="badge bg-{% if customer.customer_type == 'regular' %}secondary{% elif customer.customer_type == 'vip' %}primary{% else %}success{% endif %}">
-                        {{ customer.get_customer_type_display }}
+                    <h4>{{ name }}</h4>
+                    <span class="badge {% if is_registered %}bg-{% if customer.customer_type == 'regular' %}secondary{% elif customer.customer_type == 'vip' %}primary{% else %}success{% endif %}{% else %}bg-warning{% endif %}">
+                        {{ customer_type }}
+                        {% if not is_registered %}(Guest){% endif %}
                     </span>
                 </div>
                 
                 <div class="mb-4">
-                    <p><strong>Email:</strong> {{ customer.user.email }}</p>
-                    <p><strong>Phone:</strong> {{ customer.user.phone }}</p>
+                    <p><strong>Email:</strong> {{ email }}</p>
+                    {% if is_registered and customer.user.profile.phone_number %}
+                    <p><strong>Phone:</strong> {{ customer.user.profile.phone_number }}</p>
+                    {% endif %}
+                    {% if is_registered %}
                     <p><strong>Joined:</strong> {{ customer.user.date_joined|date:"F d, Y" }}</p>
+                    {% else %}
+                    <p><strong>First Order:</strong> {{ orders.last.created_at|date:"F d, Y" }}</p>
+                    {% endif %}
                 </div>
                 
                 <hr>
@@ -52,6 +61,7 @@
                 
                 <hr>
                 
+                {% if is_registered %}
                 <div class="mb-3">
                     <h6 class="font-weight-bold">Communication Preferences</h6>
                     <p>
@@ -65,6 +75,7 @@
                 </div>
                 
                 <hr>
+                {% endif %}
                 
                 <div class="mb-3">
                     <h6 class="font-weight-bold">Notes</h6>
@@ -103,8 +114,8 @@
                                 <td>{{ order.created_at|date:"M d, Y" }}</td>
                                 <td>৳{{ order.total_amount|floatformat:2 }}</td>
                                 <td>
-                                    <span class="badge" style="background-color: {{ order.status.color_code }}">
-                                        {{ order.status.name }}
+                                    <span class="badge" style="background-color: {{ order.status.color_code|default:'#808080' }}">
+                                        {{ order.status.name|default:"Unknown" }}
                                     </span>
                                 </td>
                                 <td>
@@ -167,14 +178,17 @@
                     </div>
                 </div>
                 
+                {% if orders.count > 1 %}
                 <div class="chart-container">
                     <canvas id="customerOrdersChart"></canvas>
                 </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
+{% if is_registered %}
 <!-- Edit Customer Modal -->
 <div class="modal fade" id="editCustomerModal" tabindex="-1" aria-labelledby="editCustomerModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -183,11 +197,12 @@
                 <h5 class="modal-title" id="editCustomerModalLabel">Edit Customer</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <form>
+            <form action="{% url 'crm:update_customer' customer.id %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
                     <div class="mb-3">
                         <label for="customerType" class="form-label">Customer Type</label>
-                        <select class="form-select" id="customerType">
+                        <select class="form-select" id="customerType" name="customer_type">
                             <option value="regular" {% if customer.customer_type == 'regular' %}selected{% endif %}>Regular</option>
                             <option value="vip" {% if customer.customer_type == 'vip' %}selected{% endif %}>VIP</option>
                             <option value="wholesale" {% if customer.customer_type == 'wholesale' %}selected{% endif %}>Wholesale</option>
@@ -196,30 +211,31 @@
                     <div class="mb-3">
                         <label for="emailOptIn" class="form-check-label">Email Marketing</label>
                         <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="emailOptIn" {% if customer.email_opt_in %}checked{% endif %}>
+                            <input class="form-check-input" type="checkbox" id="emailOptIn" name="email_opt_in" {% if customer.email_opt_in %}checked{% endif %}>
                             <label class="form-check-label" for="emailOptIn">Subscribed</label>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label for="smsOptIn" class="form-check-label">SMS Notifications</label>
                         <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="smsOptIn" {% if customer.sms_opt_in %}checked{% endif %}>
+                            <input class="form-check-input" type="checkbox" id="smsOptIn" name="sms_opt_in" {% if customer.sms_opt_in %}checked{% endif %}>
                             <label class="form-check-label" for="smsOptIn">Subscribed</label>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label for="customerNotes" class="form-label">Notes</label>
-                        <textarea class="form-control" id="customerNotes" rows="3">{{ customer.notes }}</textarea>
+                        <textarea class="form-control" id="customerNotes" name="notes" rows="3">{{ customer.notes }}</textarea>
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary">Save Changes</button>
-            </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
@@ -229,6 +245,7 @@
             order: [[1, 'desc']]  // Sort by date descending
         });
         
+        {% if orders.count > 1 %}
         // Customer orders chart
         var ctx = document.getElementById('customerOrdersChart').getContext('2d');
         var customerOrdersChart = new Chart(ctx, {
@@ -283,6 +300,7 @@
                 }
             }
         });
+        {% endif %}
     });
 </script>
 {% endblock %}
