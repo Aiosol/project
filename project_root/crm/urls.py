@@ -81,6 +81,7 @@ path('orders/<int:order_id>/status/check/', views.check_delivery_status, name='c
 path('orders/bulk-ship/', views.bulk_ship_orders, name='bulk_ship_orders'),
 path('shipping/queue/', views.shipping_queue, name='shipping_queue'),
 
+path('api/check-status/', views.check_status_api, name='check_status_api'),
 ]
 
   

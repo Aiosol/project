@@ -12,6 +12,9 @@
 <button id="ship-selected-btn" class="btn btn-sm btn-primary" disabled>
     <i class="fas fa-shipping-fast"></i> Ship Selected
 </button>
+<button id="refresh-status-btn" class="btn btn-sm btn-info ms-2">
+    <i class="fas fa-sync-alt"></i> Refresh Statuses
+</button>
 {% endblock %}
 
 {% block content %}
@@ -41,6 +44,7 @@
                             <th>Date</th>
                             <th>Total</th>
                             <th>Payment Method</th>
+                            <th>Courier Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -63,20 +67,34 @@
                             <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
                             <td>৳{{ order.total_amount|floatformat:2 }}</td>
                             <td>{{ order.payment_method }}</td>
+                            <td class="courier-status" data-order-id="{{ order.id }}">
+                                {% if order.tracking_code %}
+                                    <span class="badge {% if order.delivery_status == 'delivered' %}bg-success{% elif order.delivery_status == 'cancelled' %}bg-danger{% elif order.delivery_status == 'partly_delivered' %}bg-warning{% elif order.delivery_status == 'in_review' %}bg-info{% elif order.delivery_status == 'approval_pending' %}bg-secondary{% else %}bg-primary{% endif %}">
+                                        {{ order.delivery_status|default:"pending"|title }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Not Shipped</span>
+                                {% endif %}
+                                <a href="#" class="refresh-status-btn ms-2" data-order-id="{{ order.id }}" data-tracking-code="{{ order.tracking_code }}" title="Refresh Status">
+                                    <i class="fas fa-sync-alt"></i>
+                                </a>
+                            </td>
                             <td>
                                 <div class="btn-group">
                                     <a href="{% url 'crm:order_detail' order.id %}" class="btn btn-sm btn-info">
                                         <i class="fas fa-eye"></i>
                                     </a>
+                                    {% if not order.tracking_code %}
                                     <a href="{% url 'crm:ship_order' order.id %}" class="btn btn-sm btn-primary">
                                         <i class="fas fa-shipping-fast"></i>
                                     </a>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="7" class="text-center">No orders ready for shipping</td>
+                            <td colspan="8" class="text-center">No orders ready for shipping</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -151,7 +169,21 @@
         // Confirm shipping
         $('#confirm-ship-btn').on('click', function() {
             const selectedIds = getSelectedOrderIds();
+            console.log('Selected order IDs for shipping:', selectedIds);
+            
+            if (selectedIds.length === 0) {
+                alert('Please select at least one order to ship.');
+                return;
+            }
+            
             $('#selected-order-ids').val(selectedIds.join(','));
+            
+            // Add a hidden field to indicate this is coming from the shipping queue
+            if (!$('#from-queue-field').length) {
+                $('#bulk-ship-form').append('<input type="hidden" id="from-queue-field" name="from_queue" value="true">');
+            }
+            
+            // Submit the form
             $('#bulk-ship-form').submit();
         });
         
@@ -167,6 +199,122 @@
             return $('.order-checkbox:checked').map(function() {
                 return $(this).val();
             }).get();
+        }
+        
+        // Initialize selection count
+        updateSelectionCount();
+        
+        // Individual refresh status buttons
+        $('.refresh-status-btn').on('click', function(e) {
+            e.preventDefault();
+            const orderId = $(this).data('order-id');
+            const trackingCode = $(this).data('tracking-code');
+            
+            if (!trackingCode) {
+                alert('This order has not been shipped yet.');
+                return;
+            }
+            
+            refreshOrderStatus(orderId, trackingCode);
+        });
+        
+        // Refresh all statuses button
+        $('#refresh-status-btn').on('click', function() {
+            refreshAllStatuses();
+        });
+        
+        // Function to refresh a single order status
+        function refreshOrderStatus(orderId, trackingCode) {
+            if (!trackingCode) return;
+            
+            const statusCell = $(`.courier-status[data-order-id="${orderId}"]`);
+            statusCell.html('<i class="fas fa-spinner fa-spin"></i> Updating...');
+            
+            $.ajax({
+                url: '/crm/api/check-status/',
+                type: 'POST',
+                data: {
+                    order_id: orderId,
+                    tracking_code: trackingCode,
+                    csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        let badgeClass = 'bg-primary';
+                        
+                        // Determine badge color based on status
+                        switch(response.status.toLowerCase()) {
+                            case 'delivered':
+                                badgeClass = 'bg-success';
+                                break;
+                            case 'cancelled':
+                                badgeClass = 'bg-danger';
+                                break;
+                            case 'partly_delivered':
+                            case 'partly delivered':
+                                badgeClass = 'bg-warning';
+                                break;
+                            case 'in_review':
+                                badgeClass = 'bg-info';
+                                break;
+                            case 'approval_pending':
+                            case 'approval pending':
+                                badgeClass = 'bg-secondary';
+                                break;
+                        }
+                        
+                        // Format the status text (replace underscores with spaces and capitalize)
+                        const statusText = response.status
+                            .replace(/_/g, ' ')
+                            .replace(/\w\S*/g, function(txt) {
+                                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+                            });
+                        
+                        // Update the status cell
+                        statusCell.html(`
+                            <span class="badge ${badgeClass}">${statusText}</span>
+                            <a href="#" class="refresh-status-btn ms-2" data-order-id="${orderId}" data-tracking-code="${trackingCode}" title="Refresh Status">
+                                <i class="fas fa-sync-alt"></i>
+                            </a>
+                        `);
+                        
+                        // Re-bind the click event for the new refresh button
+                        statusCell.find('.refresh-status-btn').on('click', function(e) {
+                            e.preventDefault();
+                            refreshOrderStatus(orderId, trackingCode);
+                        });
+                    } else {
+                        statusCell.html(`
+                            <span class="badge bg-danger">Error</span>
+                            <a href="#" class="refresh-status-btn ms-2" data-order-id="${orderId}" data-tracking-code="${trackingCode}" title="Refresh Status">
+                                <i class="fas fa-sync-alt"></i>
+                            </a>
+                        `);
+                        console.error('Error refreshing status:', response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    statusCell.html(`
+                        <span class="badge bg-danger">Error</span>
+                        <a href="#" class="refresh-status-btn ms-2" data-order-id="${orderId}" data-tracking-code="${trackingCode}" title="Refresh Status">
+                            <i class="fas fa-sync-alt"></i>
+                        </a>
+                    `);
+                    console.error('AJAX error:', error);
+                }
+            });
+        }
+        
+        // Function to refresh all statuses
+        function refreshAllStatuses() {
+            $('.refresh-status-btn').each(function() {
+                const orderId = $(this).data('order-id');
+                const trackingCode = $(this).data('tracking-code');
+                
+                if (trackingCode) {
+                    refreshOrderStatus(orderId, trackingCode);
+                }
+            });
         }
     });
 </script>
