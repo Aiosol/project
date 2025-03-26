@@ -1,0 +1,173 @@
+{% extends 'crm/base.html' %}
+{% load static %}
+
+{% block title %}Shipping Queue{% endblock %}
+
+{% block page_title %}Shipping Queue{% endblock %}
+
+{% block header_buttons %}
+<button id="select-all-btn" class="btn btn-sm btn-outline-secondary me-2">
+    <i class="fas fa-check-square"></i> Select All
+</button>
+<button id="ship-selected-btn" class="btn btn-sm btn-primary" disabled>
+    <i class="fas fa-shipping-fast"></i> Ship Selected
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Orders Ready for Shipping</h6>
+        <div class="ml-2">
+            <span id="selected-count" class="badge bg-primary">0 selected</span>
+        </div>
+    </div>
+    <div class="card-body">
+        <form id="bulk-ship-form" action="{% url 'crm:bulk_ship_orders' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="order_ids" id="selected-order-ids">
+            
+            <div class="table-responsive">
+                <table class="table table-bordered" id="shippingTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="select-all-orders">
+                                </div>
+                            </th>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Payment Method</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>
+                                <div class="form-check">
+                                    <input class="form-check-input order-checkbox" type="checkbox" value="{{ order.id }}">
+                                </div>
+                            </td>
+                            <td>#{{ order.id }}</td>
+                            <td>
+                                {% if order.customer %}
+                                    {{ order.customer.get_full_name|default:order.customer.username }}
+                                {% else %}
+                                    Guest
+                                {% endif %}
+                            </td>
+                            <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
+                            <td>৳{{ order.total_amount|floatformat:2 }}</td>
+                            <td>{{ order.payment_method }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'crm:order_detail' order.id %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'crm:ship_order' order.id %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-shipping-fast"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No orders ready for shipping</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Shipping Confirmation Modal -->
+<div class="modal fade" id="shippingConfirmationModal" tabindex="-1" aria-labelledby="shippingConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="shippingConfirmationModalLabel">Confirm Shipping</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to ship <span id="ship-count">0</span> orders with Steadfast Courier?</p>
+                <p>This will create shipping consignments for all selected orders and update their status.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirm-ship-btn">Ship Orders</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // DataTable initialization
+        $('#shippingTable').DataTable({
+            order: [[3, 'desc']]  // Sort by date
+        });
+        
+        // Select all orders
+        $('#select-all-orders').on('change', function() {
+            $('.order-checkbox').prop('checked', $(this).prop('checked'));
+            updateSelectionCount();
+        });
+        
+        // Select all button (outside table)
+        $('#select-all-btn').on('click', function() {
+            const currentState = $('#select-all-orders').prop('checked');
+            $('#select-all-orders').prop('checked', !currentState);
+            $('.order-checkbox').prop('checked', !currentState);
+            updateSelectionCount();
+        });
+        
+        // Individual checkbox change
+        $(document).on('change', '.order-checkbox', function() {
+            updateSelectionCount();
+            
+            // Update select all checkbox state
+            if ($('.order-checkbox:checked').length === $('.order-checkbox').length) {
+                $('#select-all-orders').prop('checked', true);
+            } else {
+                $('#select-all-orders').prop('checked', false);
+            }
+        });
+        
+        // Ship selected button
+        $('#ship-selected-btn').on('click', function() {
+            const selectedCount = $('.order-checkbox:checked').length;
+            $('#ship-count').text(selectedCount);
+            $('#shippingConfirmationModal').modal('show');
+        });
+        
+        // Confirm shipping
+        $('#confirm-ship-btn').on('click', function() {
+            const selectedIds = getSelectedOrderIds();
+            $('#selected-order-ids').val(selectedIds.join(','));
+            $('#bulk-ship-form').submit();
+        });
+        
+        // Update selection count and button state
+        function updateSelectionCount() {
+            const selectedCount = $('.order-checkbox:checked').length;
+            $('#selected-count').text(selectedCount + ' selected');
+            $('#ship-selected-btn').prop('disabled', selectedCount === 0);
+        }
+        
+        // Get selected order IDs
+        function getSelectedOrderIds() {
+            return $('.order-checkbox:checked').map(function() {
+                return $(this).val();
+            }).get();
+        }
+    });
+</script>
+{% endblock %}

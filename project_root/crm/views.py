@@ -1540,3 +1540,279 @@ def export_orders(request):
         ])
     
     return response
+
+
+# Add these to crm/views.py
+
+from .services.steadfast import SteadfastCourier
+import re
+
+@crm_login_required
+def ship_order(request, order_id):
+    """Ship an individual order with Steadfast Courier"""
+    order = get_object_or_404(Order, id=order_id)
+    
+    if request.method == 'POST':
+        # Extract shipping details from the form
+        delivery_note = request.POST.get('delivery_note', '')
+        
+        # Extract address components
+        shipping_address = order.shipping_address or ""
+        
+        # Try to extract name and phone
+        name_match = re.search(r'^([^\n]+)', shipping_address)
+        phone_match = re.search(r'Phone: ([^\n]+)', shipping_address)
+        
+        recipient_name = name_match.group(1) if name_match else "Customer"
+        recipient_phone = phone_match.group(1) if phone_match else ""
+        
+        # Clean up address by removing name and phone lines
+        address_lines = shipping_address.split('\n')
+        clean_address = []
+        for line in address_lines:
+            if not line.startswith('Phone:') and not line.startswith('Email:'):
+                if name_match and line == name_match.group(1):
+                    continue
+                clean_address.append(line)
+        
+        recipient_address = '\n'.join(clean_address)
+        
+        # Determine if COD is needed
+        cod_amount = float(order.total_amount) if order.payment_method == 'cod' and order.payment_status != 'paid' else 0
+        
+        # Generate invoice ID (using order number if available, or order ID)
+        invoice_id = order.order_number or f"ORD-{order.id}"
+        
+        # Create the courier service and send the order
+        courier = SteadfastCourier()
+        result = courier.create_order(
+            invoice=invoice_id,
+            recipient_name=recipient_name,
+            recipient_phone=recipient_phone,
+            recipient_address=recipient_address,
+            cod_amount=cod_amount,
+            note=delivery_note
+        )
+        
+        if result.get('status') == 200:
+            # Update the order with tracking information
+            consignment = result.get('consignment', {})
+            order.tracking_code = consignment.get('tracking_code')
+            order.consignment_id = consignment.get('consignment_id')
+            order.delivery_status = consignment.get('status')
+            
+            # Update order status to Shipped
+            shipped_status = OrderStatus.objects.filter(
+                Q(name__icontains='ship') | Q(name__icontains='dispatch')
+            ).first()
+            
+            if shipped_status:
+                order.status = shipped_status
+            
+            order.save()
+            
+            # Add a note about the shipment
+            OrderNote.objects.create(
+                order=order,
+                user=request.crm_user,
+                note=f"Order shipped with Steadfast. Tracking code: {order.tracking_code}",
+                is_customer_visible=True
+            )
+            
+            messages.success(request, f"Order #{order.id} shipped successfully. Tracking code: {order.tracking_code}")
+        else:
+            error_message = result.get('message', 'Unknown error')
+            messages.error(request, f"Error shipping order: {error_message}")
+    
+    return redirect('crm:order_detail', order_id=order.id)
+
+@crm_login_required
+def bulk_ship_orders(request):
+    """Ship multiple orders at once with Steadfast Courier"""
+    if request.method == 'POST':
+        order_ids = request.POST.get('order_ids', '').split(',')
+        
+        if not order_ids:
+            messages.error(request, "No orders selected for shipping")
+            return redirect('crm:order_list')
+        
+        # Get the orders
+        orders = Order.objects.filter(id__in=order_ids)
+        
+        # Prepare data for bulk shipping
+        orders_data = []
+        processed_orders = []
+        
+        for order in orders:
+            # Skip orders that are already shipped
+            if order.tracking_code:
+                continue
+                
+            # Extract shipping details
+            shipping_address = order.shipping_address or ""
+            
+            # Try to extract name and phone
+            name_match = re.search(r'^([^\n]+)', shipping_address)
+            phone_match = re.search(r'Phone: ([^\n]+)', shipping_address)
+            
+            recipient_name = name_match.group(1) if name_match else "Customer"
+            recipient_phone = phone_match.group(1) if phone_match else ""
+            
+            # Clean up address
+            address_lines = shipping_address.split('\n')
+            clean_address = []
+            for line in address_lines:
+                if not line.startswith('Phone:') and not line.startswith('Email:'):
+                    if name_match and line == name_match.group(1):
+                        continue
+                    clean_address.append(line)
+            
+            recipient_address = '\n'.join(clean_address)
+            
+            # Determine if COD is needed
+            cod_amount = float(order.total_amount) if order.payment_method == 'cod' and order.payment_status != 'paid' else 0
+            
+            # Generate invoice ID
+            invoice_id = order.order_number or f"ORD-{order.id}"
+            
+            # Prepare order data
+            order_data = {
+                'invoice': invoice_id,
+                'recipient_name': recipient_name,
+                'recipient_phone': recipient_phone,
+                'recipient_address': recipient_address,
+                'cod_amount': cod_amount,
+                'note': f"Order #{order.id}"
+            }
+            
+            orders_data.append(order_data)
+            processed_orders.append(order)
+        
+        if not orders_data:
+            messages.warning(request, "No eligible orders found for shipping")
+            return redirect('crm:order_list')
+        
+        # Send bulk shipping request
+        courier = SteadfastCourier()
+        result = courier.create_bulk_orders(orders_data)
+        
+        # Process the results
+        success_count = 0
+        error_count = 0
+        
+        if isinstance(result, list):
+            # Get shipped status
+            shipped_status = OrderStatus.objects.filter(
+                Q(name__icontains='ship') | Q(name__icontains='dispatch')
+            ).first()
+            
+            # Process each result
+            for i, item in enumerate(result):
+                if item.get('status') == 'success':
+                    order = processed_orders[i]
+                    
+                    # Update order tracking info
+                    order.tracking_code = item.get('tracking_code')
+                    order.consignment_id = item.get('consignment_id')
+                    order.delivery_status = 'in_review'
+                    
+                    # Update status
+                    if shipped_status:
+                        order.status = shipped_status
+                    
+                    order.save()
+                    
+                    # Add note
+                    OrderNote.objects.create(
+                        order=order,
+                        user=request.crm_user,
+                        note=f"Order shipped with Steadfast. Tracking code: {order.tracking_code}",
+                        is_customer_visible=True
+                    )
+                    
+                    success_count += 1
+                else:
+                    error_count += 1
+            
+            if success_count > 0:
+                messages.success(request, f"Successfully shipped {success_count} orders with Steadfast")
+            
+            if error_count > 0:
+                messages.warning(request, f"Failed to ship {error_count} orders. Check order details for more information.")
+        else:
+            messages.error(request, f"Error processing bulk shipping: {result.get('message', 'Unknown error')}")
+        
+    return redirect('crm:order_list')
+
+@crm_login_required
+def check_delivery_status(request, order_id):
+    """Check and update delivery status from Steadfast"""
+    order = get_object_or_404(Order, id=order_id)
+    
+    if not order.tracking_code:
+        messages.warning(request, "Order has not been shipped yet")
+        return redirect('crm:order_detail', order_id=order.id)
+    
+    # Create the courier service
+    courier = SteadfastCourier()
+    
+    # Check status
+    result = courier.check_status_by_tracking(order.tracking_code)
+    
+    if result.get('status') == 200:
+        delivery_status = result.get('delivery_status')
+        
+        # Update order delivery status
+        order.delivery_status = delivery_status
+        order.save()
+        
+        # Update order status based on delivery status
+        if delivery_status == 'delivered':
+            delivered_status = OrderStatus.objects.filter(name__icontains='deliver').first()
+            if delivered_status:
+                order.status = delivered_status
+                order.save()
+                
+                # Add note
+                OrderNote.objects.create(
+                    order=order,
+                    user=request.crm_user,
+                    note=f"Order marked as delivered by Steadfast",
+                    is_customer_visible=True
+                )
+        
+        messages.success(request, f"Delivery status updated: {delivery_status}")
+    else:
+        error_message = result.get('message', 'Unknown error')
+        messages.error(request, f"Error checking delivery status: {error_message}")
+    
+    return redirect('crm:order_detail', order_id=order.id)
+
+@crm_login_required
+def shipping_queue(request):
+    """View for displaying orders ready to be shipped"""
+    # Get shipping ready statuses
+    ready_statuses = OrderStatus.objects.filter(
+        Q(name__icontains='processing') | Q(name__icontains='ready'),
+        is_processing=True,
+        is_completed=False,
+        is_cancelled=False
+    )
+    
+    # Get orders ready for shipping (that don't already have tracking)
+    orders = Order.objects.filter(
+        status__in=ready_statuses,
+        tracking_code__isnull=True
+    ).order_by('-created_at')
+    
+    # Get shipped status
+    shipped_status = OrderStatus.objects.filter(
+        Q(name__icontains='ship') | Q(name__icontains='dispatch')
+    ).first()
+    
+    context = {
+        'orders': orders,
+        'shipped_status': shipped_status
+    }
+    
+    return render(request, 'crm/shipping/queue.html', context)

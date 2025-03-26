@@ -16,7 +16,10 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     status = models.ForeignKey('crm.OrderStatus', on_delete=models.SET_NULL, null=True, blank=True)
-    tracking_number = models.CharField(max_length=100, blank=True, null=True)
+    # orders/models.py (add this field if not already present)
+    tracking_code = models.CharField(max_length=50, blank=True, null=True)
+    consignment_id = models.CharField(max_length=50, blank=True, null=True)
+    delivery_status = models.CharField(max_length=50, blank=True, null=True)
     inventory_updated = models.BooleanField(default=False)
     
     def __str__(self):

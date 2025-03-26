@@ -233,37 +233,74 @@
     </div>
 </div>
 
+<!-- Add this section to the order detail template (crm/templates/crm/orders/detail.html) -->
+<!-- Add it in the right sidebar after the Status Update section -->
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Shipping</h6>
+    </div>
+    <div class="card-body">
+        {% if order.tracking_code %}
+            <div class="alert alert-info mb-3">
+                <strong>Tracking Number:</strong> {{ order.tracking_code }}<br>
+                <strong>Status:</strong> {{ order.delivery_status|default:"Unknown" }}
+                
+                <div class="mt-2">
+                    <a href="{% url 'crm:check_delivery_status' order.id %}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-sync-alt"></i> Update Status
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-warning mb-3">
+                This order has not been shipped yet.
+            </div>
+            
+            <button type="button" class="btn btn-primary btn-block" data-bs-toggle="modal" data-bs-target="#shipOrderModal">
+                <i class="fas fa-shipping-fast"></i> Ship with Steadfast
+            </button>
+        {% endif %}
+    </div>
+</div>
+
 <!-- Ship Order Modal -->
 <div class="modal fade" id="shipOrderModal" tabindex="-1" aria-labelledby="shipOrderModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="shipOrderModalLabel">Ship Order</h5>
+                <h5 class="modal-title" id="shipOrderModalLabel">Ship Order with Steadfast</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <form>
+            <form action="{% url 'crm:ship_order' order.id %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
                     <div class="mb-3">
-                        <label for="shippingMethod" class="form-label">Shipping Method</label>
-                        <select class="form-select" id="shippingMethod">
-                            <option value="steadfast">Steadfast Courier</option>
-                            <option value="other">Other Courier</option>
-                        </select>
+                        <label class="form-label">Shipping Address</label>
+                        <div class="form-control bg-light" style="height: auto;">
+                            {{ order.shipping_address|linebreaks }}
+                        </div>
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="trackingNumber" class="form-label">Tracking Number</label>
-                        <input type="text" class="form-control" id="trackingNumber">
+                        <label for="delivery_note" class="form-label">Delivery Instructions (Optional)</label>
+                        <textarea class="form-control" id="delivery_note" name="delivery_note" rows="3"></textarea>
                     </div>
-                    <div class="mb-3">
-                        <label for="shippingNotes" class="form-label">Shipping Notes</label>
-                        <textarea class="form-control" id="shippingNotes" rows="3"></textarea>
+                    
+                    <div class="alert alert-info">
+                        <strong>Note:</strong> This will create a shipping consignment with Steadfast Courier.
+                        {% if order.payment_method == 'cod' and order.payment_status != 'paid' %}
+                            <div class="mt-2">
+                                <strong>COD Amount:</strong> ৳{{ order.total_amount|floatformat:2 }}
+                            </div>
+                        {% endif %}
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary">Ship Order</button>
-            </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Ship Order</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

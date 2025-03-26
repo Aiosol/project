@@ -42,7 +42,13 @@
                             </a>
                         </li>
                         {% endif %}
-                        
+                                                    <!-- Add this to the sidebar in the base.html template -->
+                        <li class="nav-item">
+                            <a class="nav-link text-white {% if '/crm/shipping/' in request.path %}active{% endif %}" href="{% url 'crm:shipping_queue' %}">
+                               <i class="fas fa-shipping-fast me-2"></i> Shipping Queue
+                            </a>
+                        </li>
+                         
                         {% if request.crm_user.role == 'admin' or request.crm_user.role == 'manager' or request.crm_user.can_manage_customers %}
                         <li class="nav-item">
                             <a class="nav-link text-white {% if '/crm/customers/' in request.path %}active{% endif %}" href="{% url 'crm:customer_list' %}">

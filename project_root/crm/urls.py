@@ -74,6 +74,13 @@ path('debug/', views.debug_view, name='debug'),
 path('orders/bulk-status/', views.bulk_update_status, name='bulk_update_status'),
 path('orders/bulk-delete/', views.bulk_delete_orders, name='bulk_delete_orders'),
 path('orders/export/', views.export_orders, name='export_orders'),
+
+# Add these to urlpatterns in crm/urls.py
+path('orders/<int:order_id>/ship/', views.ship_order, name='ship_order'),
+path('orders/<int:order_id>/status/check/', views.check_delivery_status, name='check_delivery_status'),
+path('orders/bulk-ship/', views.bulk_ship_orders, name='bulk_ship_orders'),
+path('shipping/queue/', views.shipping_queue, name='shipping_queue'),
+
 ]
 
   

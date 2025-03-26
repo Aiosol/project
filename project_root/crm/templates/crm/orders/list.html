@@ -33,6 +33,9 @@
                     <button type="button" class="btn btn-sm btn-outline-secondary bulk-export-btn">
                         <i class="fas fa-download"></i> Export Selected
                     </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary bulk-ship-btn" disabled>
+                        <i class="fas fa-shipping-fast"></i> Ship Selected
+                    </button>
                     <button type="button" class="btn btn-sm btn-outline-danger bulk-delete-btn">
                         <i class="fas fa-trash"></i> Delete Selected
                     </button>
@@ -222,6 +225,7 @@
         // Update bulk actions toolbar visibility
         function updateBulkActionsToolbar() {
             const selectedCount = $('.order-checkbox:checked').length;
+            $('.bulk-ship-btn').prop('disabled', selectedCount === 0);
             
             if (selectedCount > 0) {
                 $('#bulk-actions-toolbar').show();
@@ -293,6 +297,41 @@
             }
         });
         
+            // Bulk shipping
+            $('.bulk-ship-btn').on('click', function() {
+                const selectedIds = getSelectedOrderIds();
+                
+                if (selectedIds.length === 0) {
+                    alert('Please select at least one order to ship');
+                    return;
+                }
+                
+                if (confirm(`Are you sure you want to ship ${selectedIds.length} orders with Steadfast?`)) {
+                    // Create a form and submit
+                    const form = $('<form></form>').attr({
+                        method: 'post',
+                        action: '{% url "crm:bulk_ship_orders" %}'
+                    });
+                    
+                    // Add CSRF token
+                    form.append($('<input>').attr({
+                        type: 'hidden',
+                        name: 'csrfmiddlewaretoken',
+                        value: '{{ csrf_token }}'
+                    }));
+                    
+                    // Add order IDs
+                    form.append($('<input>').attr({
+                        type: 'hidden',
+                        name: 'order_ids',
+                        value: selectedIds.join(',')
+                    }));
+                    
+                    // Append to body and submit
+                    $('body').append(form);
+                    form.submit();
+                }
+            });
         // Clear selection button
         $('#clear-selection').on('click', function() {
             $('.order-checkbox, #select-all-orders').prop('checked', false);
