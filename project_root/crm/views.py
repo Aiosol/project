@@ -4,17 +4,15 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
- 
+from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.forms import modelform_factory
 from datetime import datetime, timedelta
 import json
 from django.http import HttpResponse, JsonResponse
 import csv
-from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Q
-import re
-
+import os
+from django.conf import settings
 
 from .forms import SalesTargetForm
 
@@ -305,7 +303,7 @@ def order_list(request):
     
     from django.utils import timezone
     from datetime import datetime
-     
+    from django.db.models import Q
     
     # Start with all orders with related models
     orders = Order.objects.select_related('customer', 'status').order_by('-created_at')
@@ -1629,227 +1627,183 @@ def ship_order(request, order_id):
     
     return redirect('crm:order_detail', order_id=order.id)
 
-
-@crm_login_required
-def shipping_queue(request):
-    """View for displaying orders ready to be shipped and tracking shipped orders"""
-    # Get all relevant statuses for shipping queue - including shipped orders
-    processing_statuses = OrderStatus.objects.filter(
-        # Either processing, ready, shipping, or shipped statuses should be included
-        Q(name__icontains='processing') | 
-        Q(name__icontains='ready') | 
-        Q(name__icontains='ship') |
-        Q(name__icontains='deliver'),
-        # Exclude completed and cancelled orders
-        ~Q(is_cancelled=True),
-        ~Q(is_completed=True)
-    )
-    
-    # Also include any orders with tracking codes regardless of status
-    orders = Order.objects.filter(
-        Q(status__in=processing_statuses) | 
-        Q(tracking_code__isnull=False, tracking_code__gt='')
-    ).order_by('-created_at')
-    
-    # Debug information to help troubleshoot
-    print(f"Found {orders.count()} orders in shipping queue")
-    print(f"Status IDs included: {[status.id for status in processing_statuses]}")
-    
-    # Get or create shipped status for display
-    shipped_status = OrderStatus.objects.filter(
-        Q(name__icontains='ship') | Q(name__icontains='dispatch')
-    ).first()
-    
-    context = {
-        'orders': orders,
-        'shipped_status': shipped_status
-    }
-    
-    return render(request, 'crm/shipping/queue.html', context)
-@require_POST
 @crm_login_required
 def bulk_ship_orders(request):
     """Ship multiple orders at once with Steadfast Courier"""
-    # Debug information
-    print("Bulk ship orders called")
-    print(f"POST data: {request.POST}")
-    
-    order_ids_str = request.POST.get('order_ids', '')
-    order_ids = [id.strip() for id in order_ids_str.split(',') if id.strip()]
-    
-    # More debug info
-    print(f"Order IDs to ship: {order_ids}")
-    
-    if not order_ids:
-        messages.error(request, "No orders selected for shipping")
-        return redirect('crm:shipping_queue' if 'from_queue' in request.POST else 'crm:order_list')
-    
-    # Get the orders
-    orders = Order.objects.filter(id__in=order_ids)
-    
-    # Get shipped status
-    shipped_status = OrderStatus.objects.filter(
-        Q(name__icontains='ship') | Q(name__icontains='dispatch')
-    ).first()
-    
-    # Process each order individually for more reliability
-    success_count = 0
-    error_count = 0
-    
-    for order in orders:
-        # Skip orders that are already shipped
-        if order.tracking_code:
-            messages.info(request, f"Order #{order.id} already has tracking code {order.tracking_code}")
-            continue
-            
-        # Extract shipping details
-        shipping_address = order.shipping_address or ""
+    if request.method == 'POST':
+        # Get order IDs from form data
+        order_ids_str = request.POST.get('order_ids', '')
+        order_ids = [id.strip() for id in order_ids_str.split(',') if id.strip()]
         
-        # Try to extract name and phone
-        name_match = re.search(r'^([^\n]+)', shipping_address)
-        phone_match = re.search(r'Phone: ([^\n]+)', shipping_address)
+        # Log for debugging
+        print(f"Raw order_ids from form: '{order_ids_str}'")
+        print(f"Parsed order IDs: {order_ids}")
         
-        recipient_name = name_match.group(1) if name_match else "Customer"
-        recipient_phone = phone_match.group(1) if phone_match else ""
+        if not order_ids:
+            messages.error(request, "No orders selected for shipping")
+            return redirect('crm:shipping_queue' if request.POST.get('from_queue') else 'crm:order_list')
         
-        # Clean up address
-        address_lines = shipping_address.split('\n')
-        clean_address = []
-        for line in address_lines:
-            if not line.startswith('Phone:') and not line.startswith('Email:'):
-                if name_match and line == name_match.group(1):
-                    continue
-                clean_address.append(line)
+        # Get the orders with all necessary related data
+        orders = Order.objects.filter(id__in=order_ids)
+        print(f"Found {orders.count()} orders in database")
         
-        recipient_address = '\n'.join(clean_address)
+        # Get order details for debugging
+        for order in orders:
+            print(f"Order #{order.id}: tracking_code={order.tracking_code}, status={order.status}")
         
-        # Determine if COD is needed
-        cod_amount = float(order.total_amount) if order.payment_method == 'cod' and order.payment_status != 'paid' else 0
+        if not orders.exists():
+            messages.error(request, "No valid orders found to ship")
+            return redirect('crm:shipping_queue' if request.POST.get('from_queue') else 'crm:order_list')
         
-        # Generate invoice ID
-        invoice_id = order.order_number or f"ORD-{order.id}"
+        # Get the shipping status
+        shipped_status = OrderStatus.objects.filter(
+            Q(name__icontains='ship') | Q(name__icontains='dispatch')
+        ).first()
         
-        try:
-            # Create the courier service
-            courier = SteadfastCourier()
-            
-            # Ship the order
-            result = courier.create_order(
-                invoice=invoice_id,
-                recipient_name=recipient_name,
-                recipient_phone=recipient_phone,
-                recipient_address=recipient_address,
-                cod_amount=cod_amount,
-                note=f"Order #{order.id}"
+        if not shipped_status:
+            # Create one if it doesn't exist
+            shipped_status = OrderStatus.objects.create(
+                name="Shipped",
+                description="Order has been shipped",
+                color_code="#1cc88a",
+                is_active=True,
+                is_initial=False,
+                is_processing=True,
+                is_completed=False,
+                is_cancelled=False,
+                sort_order=50
             )
             
-            print(f"Steadfast API response for order {order.id}: {result}")
-            
-            if result.get('status') == 200:
-                # Extract consignment info
-                consignment = result.get('consignment', {})
-                
-                # Update order tracking info
-                order.tracking_code = consignment.get('tracking_code')
-                order.consignment_id = consignment.get('consignment_id', '')
-                order.delivery_status = 'in_review'
-                
-                # Update status
-                if shipped_status:
-                    order.status = shipped_status
-                
-                order.save()
-                
-                # Add note
-                OrderNote.objects.create(
-                    order=order,
-                    user=request.crm_user,
-                    note=f"Order shipped with Steadfast. Tracking code: {order.tracking_code}",
-                    is_customer_visible=True
-                )
-                
-                success_count += 1
-            else:
-                error_message = result.get('message', 'Unknown error')
-                messages.error(request, f"Error shipping order #{order.id}: {error_message}")
-                error_count += 1
-                
-        except Exception as e:
-            messages.error(request, f"Error shipping order #{order.id}: {str(e)}")
-            error_count += 1
-            print(f"Exception while shipping order {order.id}: {str(e)}")
-    
-    if success_count > 0:
-        messages.success(request, f"Successfully shipped {success_count} orders with Steadfast")
-    
-    if error_count > 0:
-        messages.warning(request, f"Failed to ship {error_count} orders. See detailed messages above.")
-    
-    # Debug info
-    print(f"Bulk shipping complete: {success_count} successful, {error_count} failed")
-    
-    # Redirect back to the appropriate page
-    if 'from_queue' in request.POST:
-        return redirect('crm:shipping_queue')
-    else:
-        return redirect('crm:order_list')
-
-@csrf_exempt
-@require_POST
-def check_status_api(request):
-    """API endpoint to check delivery status from Steadfast"""
-    if not request.user.is_authenticated:
-        return JsonResponse({'success': False, 'message': 'Authentication required'})
-    
-    try:
-        order_id = request.POST.get('order_id')
-        tracking_code = request.POST.get('tracking_code')
-        
-        if not order_id or not tracking_code:
-            return JsonResponse({'success': False, 'message': 'Order ID and tracking code are required'})
-        
-        # Get the order
-        order = get_object_or_404(Order, id=order_id)
-        
         # Create the courier service
         courier = SteadfastCourier()
         
-        # Check status
-        result = courier.check_status_by_tracking(tracking_code)
+        # Process each order individually for better reliability
+        success_count = 0
+        error_count = 0
+        already_shipped = 0
+        errors = []
         
-        if result.get('status') == 200:
-            delivery_status = result.get('delivery_status')
+        for order in orders:
+            # Skip orders that already have tracking codes
+            if order.tracking_code:
+                already_shipped += 1
+                messages.info(request, f"Order #{order.id} already has tracking code {order.tracking_code}")
+                continue
+                
+            # Extract shipping details
+            shipping_address = order.shipping_address or ""
             
-            # Update order delivery status in the database
-            order.delivery_status = delivery_status
-            order.save()
+            # Try to extract name and phone
+            name_match = re.search(r'^([^\n]+)', shipping_address)
+            phone_match = re.search(r'Phone: ([^\n]+)', shipping_address)
             
-            # Update order status based on delivery status if it's delivered
-            if delivery_status == 'delivered':
-                delivered_status = OrderStatus.objects.filter(name__icontains='deliver').first()
-                if delivered_status:
-                    order.status = delivered_status
+            recipient_name = name_match.group(1) if name_match else "Customer"
+            recipient_phone = phone_match.group(1) if phone_match else ""
+            
+            # Clean up address
+            address_lines = shipping_address.split('\n')
+            clean_address = []
+            for line in address_lines:
+                if not line.startswith('Phone:') and not line.startswith('Email:'):
+                    if name_match and line == name_match.group(1):
+                        continue
+                    clean_address.append(line)
+            
+            recipient_address = '\n'.join(clean_address)
+            
+            # Make sure we have the required information
+            if not recipient_name or not recipient_address:
+                error_count += 1
+                error_msg = f"Order #{order.id}: Missing recipient name or address"
+                errors.append(error_msg)
+                print(error_msg)
+                continue
+                
+            # Determine if COD is needed
+            cod_amount = float(order.total_amount) if order.payment_method == 'cod' and order.payment_status != 'paid' else 0
+            
+            # Generate invoice ID
+            invoice_id = order.order_number or f"ORD-{order.id}"
+            
+            try:
+                # Log before sending to Steadfast
+                print(f"Sending order #{order.id} to Steadfast: {recipient_name}, {recipient_phone}, {recipient_address}")
+                
+                # Send to Steadfast
+                result = courier.create_order(
+                    invoice=invoice_id,
+                    recipient_name=recipient_name,
+                    recipient_phone=recipient_phone,
+                    recipient_address=recipient_address,
+                    cod_amount=cod_amount,
+                    note=f"Order #{order.id}"
+                )
+                
+                # Log the response for debugging
+                print(f"Steadfast API result for order {order.id}: {result}")
+                
+                if result.get('status') == 200:
+                    # Extract consignment info
+                    consignment = result.get('consignment', {})
+                    
+                    # Update order tracking info
+                    order.tracking_code = consignment.get('tracking_code')
+                    order.consignment_id = consignment.get('consignment_id', '')
+                    order.delivery_status = consignment.get('status', 'in_review')
+                    
+                    # Update status
+                    if shipped_status:
+                        order.status = shipped_status
+                    
                     order.save()
+                    
+                    # Add order note
+                    OrderNote.objects.create(
+                        order=order,
+                        user=request.crm_user,
+                        note=f"Order shipped with Steadfast. Tracking code: {order.tracking_code}",
+                        is_customer_visible=True
+                    )
+                    
+                    success_count += 1
+                else:
+                    error_message = result.get('message', 'Unknown error')
+                    error_detail = f"Order #{order.id}: {error_message}"
+                    errors.append(error_detail)
+                    error_count += 1
+                    print(error_detail)
+                    
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                error_detail = f"Order #{order.id}: {str(e)}"
+                errors.append(error_detail)
+                error_count += 1
+                print(error_detail)
+        
+        # Summary of what happened
+        print(f"Bulk shipping summary: {success_count} shipped, {error_count} errors, {already_shipped} already shipped")
+        
+        # Show success message if any orders were shipped
+        if success_count > 0:
+            messages.success(request, f"Successfully shipped {success_count} orders with Steadfast")
+        
+        # Show message about orders that were already shipped
+        if already_shipped > 0:
+            messages.info(request, f"{already_shipped} orders were already shipped")
+        
+        # Show error messages
+        if error_count > 0:
+            for error in errors[:5]:  # Show first 5 errors
+                messages.error(request, error)
             
-            # Return the updated status
-            return JsonResponse({
-                'success': True,
-                'status': delivery_status,
-                'order_id': order_id
-            })
-        else:
-            error_message = result.get('message', 'Unknown error')
-            return JsonResponse({
-                'success': False,
-                'message': error_message,
-                'order_id': order_id
-            })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'message': str(e),
-            'order_id': order_id if 'order_id' in locals() else None
-        })
+            if len(errors) > 5:
+                messages.error(request, f"...and {len(errors) - 5} more errors")
+    else:
+        messages.error(request, "Invalid request method")
+    
+    # Redirect back to the appropriate page
+    return redirect('crm:shipping_queue' if request.POST.get('from_queue') else 'crm:order_list')
 
 @crm_login_required
 def check_delivery_status(request, order_id):
@@ -1895,182 +1849,155 @@ def check_delivery_status(request, order_id):
     
     return redirect('crm:order_detail', order_id=order.id)
 
-@crm_login_required
-def bulk_ship_orders(request):
-    """Ship multiple orders at once with Steadfast Courier"""
-    if request.method == 'POST':
-        order_ids = request.POST.get('order_ids', '').split(',')
+
+@require_POST
+def check_status_api(request):
+    """API endpoint to check delivery status from Steadfast"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'message': 'Authentication required'}, status=401)
+    
+    try:
+        order_id = request.POST.get('order_id')
+        tracking_code = request.POST.get('tracking_code')
         
-        if not order_ids or not order_ids[0]:
-            messages.error(request, "No orders selected for shipping")
-            return redirect('crm:order_list')
+        if not order_id or not tracking_code:
+            return JsonResponse({'success': False, 'message': 'Order ID and tracking code are required'}, status=400)
         
-        # Get the orders
-        orders = Order.objects.filter(id__in=order_ids)
-        
-        # Prepare data for bulk shipping
-        orders_data = []
-        processed_orders = []
-        
-        for order in orders:
-            # Skip orders that are already shipped
-            if order.tracking_code:
-                continue
-                
-            # Extract shipping details
-            shipping_address = order.shipping_address or ""
-            
-            # Try to extract name and phone
-            name_match = re.search(r'^([^\n]+)', shipping_address)
-            phone_match = re.search(r'Phone: ([^\n]+)', shipping_address)
-            
-            recipient_name = name_match.group(1) if name_match else "Customer"
-            recipient_phone = phone_match.group(1) if phone_match else ""
-            
-            # Clean up address
-            address_lines = shipping_address.split('\n')
-            clean_address = []
-            for line in address_lines:
-                if not line.startswith('Phone:') and not line.startswith('Email:'):
-                    if name_match and line == name_match.group(1):
-                        continue
-                    clean_address.append(line)
-            
-            recipient_address = '\n'.join(clean_address)
-            
-            # Determine if COD is needed
-            cod_amount = float(order.total_amount) if order.payment_method == 'cod' and order.payment_status != 'paid' else 0
-            
-            # Generate invoice ID
-            invoice_id = order.order_number or f"ORD-{order.id}"
-            
-            # Prepare order data
-            order_data = {
-                'invoice': invoice_id,
-                'recipient_name': recipient_name,
-                'recipient_phone': recipient_phone,
-                'recipient_address': recipient_address,
-                'cod_amount': cod_amount,
-                'note': f"Order #{order.id}"
-            }
-            
-            orders_data.append(order_data)
-            processed_orders.append(order)
-        
-        if not orders_data:
-            messages.warning(request, "No eligible orders found for shipping")
-            return redirect('crm:order_list')
+        # Get the order
+        order = get_object_or_404(Order, id=order_id)
         
         # Create the courier service
         courier = SteadfastCourier()
         
-        # Process orders one by one if bulk shipping fails
-        # This is more reliable than bulk shipping
-        success_count = 0
-        error_count = 0
+        # Check status by tracking code
+        result = courier.check_status_by_tracking(tracking_code)
         
-        # Get shipped status
-        shipped_status = OrderStatus.objects.filter(
-            Q(name__icontains='ship') | Q(name__icontains='dispatch')
-        ).first()
+        # Log the response for debugging
+        print(f"Steadfast status check for order {order_id}: {result}")
         
-        # Try bulk shipping first
-        try:
-            bulk_result = courier.create_bulk_orders(orders_data)
+        if result.get('status') == 200:
+            delivery_status = result.get('delivery_status', 'unknown')
             
-            # Check if bulk shipping was successful
-            if bulk_result.get('status') == 200 and 'data' in bulk_result:
-                # Process bulk results
-                results = bulk_result.get('data', [])
-                
-                for i, result in enumerate(results):
-                    if i < len(processed_orders):
-                        order = processed_orders[i]
-                        
-                        if result.get('status') == 'success':
-                            # Update order tracking info
-                            order.tracking_code = result.get('tracking_code')
-                            order.consignment_id = result.get('consignment_id', '')
-                            order.delivery_status = 'in_review'
-                            
-                            # Update status
-                            if shipped_status:
-                                order.status = shipped_status
-                            
-                            order.save()
-                            
-                            # Add note
-                            OrderNote.objects.create(
-                                order=order,
-                                user=request.crm_user,
-                                note=f"Order shipped with Steadfast. Tracking code: {order.tracking_code}",
-                                is_customer_visible=True
-                            )
-                            
-                            success_count += 1
-                        else:
-                            error_count += 1
-                
-                messages.success(request, f"Successfully shipped {success_count} orders with Steadfast")
-                
-                if error_count > 0:
-                    messages.warning(request, f"Failed to ship {error_count} orders. Trying individual shipping...")
-                    
-                return redirect('crm:shipping_queue' if request.POST.get('from_queue') else 'crm:order_list')
+            # Map status values to standardized values
+            status_mapping = {
+                'pending': 'pending',
+                'delivered_approval_pending': 'approval_pending',
+                'partial_delivered_approval_pending': 'partly_delivered',
+                'cancelled_approval_pending': 'approval_pending',
+                'unknown_approval_pending': 'approval_pending',
+                'delivered': 'delivered',
+                'partial_delivered': 'partly_delivered',
+                'cancelled': 'cancelled',
+                'hold': 'hold',
+                'in_review': 'in_review',
+                'partly_delivered': 'partly_delivered',
+                'unknown': 'unknown'
+            }
             
-            # If bulk shipping failed, fall back to individual shipping
-            messages.warning(request, "Bulk shipping failed. Trying individual shipping...")
-        except Exception as e:
-            messages.warning(request, f"Bulk shipping error: {str(e)}. Trying individual shipping...")
-        
-        # Process each order individually as fallback
-        for i, (order, order_data) in enumerate(zip(processed_orders, orders_data)):
-            try:
-                result = courier.create_order(
-                    invoice=order_data['invoice'],
-                    recipient_name=order_data['recipient_name'],
-                    recipient_phone=order_data['recipient_phone'],
-                    recipient_address=order_data['recipient_address'],
-                    cod_amount=order_data['cod_amount'],
-                    note=order_data['note']
-                )
+            # Get standardized status
+            standardized_status = status_mapping.get(delivery_status, delivery_status)
+            
+            # Was the status updated?
+            status_changed = order.delivery_status != standardized_status
+            
+            # Update order delivery status in the database
+            old_status = order.delivery_status
+            order.delivery_status = standardized_status
+            order.save()
+            
+            # Update order status based on delivery status if it's delivered or cancelled
+            if standardized_status in ['delivered', 'cancelled'] and status_changed:
+                # Find appropriate order status
+                new_order_status = None
                 
-                if result.get('status') == 200:
-                    # Extract consignment info
-                    consignment = result.get('consignment', {})
-                    
-                    # Update order tracking info
-                    order.tracking_code = consignment.get('tracking_code')
-                    order.consignment_id = consignment.get('consignment_id', '')
-                    order.delivery_status = 'in_review'
-                    
-                    # Update status
-                    if shipped_status:
-                        order.status = shipped_status
-                    
+                if standardized_status == 'delivered':
+                    new_order_status = OrderStatus.objects.filter(name__icontains='deliver').first()
+                elif standardized_status == 'cancelled':
+                    new_order_status = OrderStatus.objects.filter(name__icontains='cancel').first()
+                
+                if new_order_status:
+                    order.status = new_order_status
                     order.save()
                     
-                    # Add note
-                    OrderNote.objects.create(
-                        order=order,
-                        user=request.crm_user,
-                        note=f"Order shipped with Steadfast. Tracking code: {order.tracking_code}",
-                        is_customer_visible=True
-                    )
-                    
-                    success_count += 1
-                else:
-                    error_count += 1
-                    
-            except Exception as e:
-                error_count += 1
-                print(f"Error shipping order {order.id}: {str(e)}")
-        
-        if success_count > 0:
-            messages.success(request, f"Successfully shipped {success_count} orders with Steadfast")
-        
-        if error_count > 0:
-            messages.warning(request, f"Failed to ship {error_count} orders. Check order details for more information.")
+                    # Add a note about the status change
+                    if hasattr(order, 'crm_notes') and request.user.is_authenticated:
+                        try:
+                            crm_user = request.user.crm_profile
+                            OrderNote.objects.create(
+                                order=order,
+                                user=crm_user,
+                                note=f"Order status updated automatically. Courier status changed from '{old_status if old_status else 'Unknown'}' to '{standardized_status}'",
+                                is_customer_visible=False
+                            )
+                        except:
+                            # If there's an error adding the note, just continue
+                            pass
+            
+            # Return the updated status
+            return JsonResponse({
+                'success': True,
+                'status': standardized_status,
+                'order_id': order_id,
+                'status_changed': status_changed
+            })
+        else:
+            error_message = result.get('message', 'Unknown error')
+            return JsonResponse({
+                'success': False,
+                'message': error_message,
+                'order_id': order_id
+            })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False,
+            'message': str(e),
+            'order_id': order_id if 'order_id' in locals() else None
+        })
+@crm_login_required
+def shipping_queue(request):
+    """View for displaying orders ready to be shipped and tracking shipped orders"""
+    # Get all relevant statuses for shipping queue - including shipped orders
+    processing_statuses = OrderStatus.objects.filter(
+        # Either processing, ready, shipping, or shipped statuses should be included
+        Q(name__icontains='processing') | 
+        Q(name__icontains='ready') | 
+        Q(name__icontains='ship') |
+        Q(name__icontains='deliver'),
+        # Exclude completed and cancelled orders
+        ~Q(is_cancelled=True),
+        ~Q(is_completed=True)
+    )
     
-    # Redirect back to the appropriate page
-    return redirect('crm:shipping_queue' if request.POST.get('from_queue') else 'crm:order_list')
+    # Also include any orders with tracking codes regardless of status
+    orders = Order.objects.filter(
+        Q(status__in=processing_statuses) | 
+        Q(tracking_code__isnull=False, tracking_code__gt='')
+    ).order_by('-created_at')
+    
+    # Get shipped status
+    shipped_status = OrderStatus.objects.filter(
+        Q(name__icontains='ship') | Q(name__icontains='dispatch')
+    ).first()
+    
+    # Get all statuses for the status dropdown
+    statuses = OrderStatus.objects.filter(is_active=True).order_by('sort_order')
+    
+    # Get count of orders ready for shipping (without tracking codes)
+    ready_for_shipping_count = orders.filter(
+        Q(tracking_code__isnull=True) | Q(tracking_code='')
+    ).count()
+    
+    # Check for status filter in request
+    status_filter = request.GET.get('status', 'all')
+    
+    context = {
+        'orders': orders,
+        'shipped_status': shipped_status,
+        'statuses': statuses,
+        'ready_for_shipping_count': ready_for_shipping_count,
+        'status_filter': status_filter
+    }
+    
+    return render(request, 'crm/shipping/queue.html', context)

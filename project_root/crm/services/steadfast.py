@@ -2,7 +2,6 @@
 
 import requests
 import logging
-import json
 
 logger = logging.getLogger(__name__)
 
@@ -38,15 +37,7 @@ class SteadfastCourier:
         try:
             logger.info(f"Sending order to Steadfast: {payload}")
             response = requests.post(url, headers=self.headers, json=payload)
-            
-            # Log the raw response for debugging
-            logger.info(f"Steadfast response: {response.status_code} - {response.text}")
-            
-            try:
-                return response.json()
-            except json.JSONDecodeError:
-                logger.error(f"Failed to parse JSON response: {response.text}")
-                return {'status': 'error', 'message': 'Invalid JSON response'}
+            return response.json()
         except Exception as e:
             logger.error(f"Error creating Steadfast order: {str(e)}")
             return {'status': 'error', 'message': str(e)}
@@ -61,20 +52,8 @@ class SteadfastCourier:
         
         try:
             logger.info(f"Sending bulk orders to Steadfast: {len(orders_data)} orders")
-            # Log the first order as a sample (avoid logging everything)
-            if orders_data:
-                logger.info(f"Sample order data: {orders_data[0]}")
-                
             response = requests.post(url, headers=self.headers, json=payload)
-            
-            # Log the raw response for debugging
-            logger.info(f"Steadfast bulk response: {response.status_code} - {response.text[:500]}")
-            
-            try:
-                return response.json()
-            except json.JSONDecodeError:
-                logger.error(f"Failed to parse JSON response: {response.text}")
-                return {'status': 'error', 'message': 'Invalid JSON response'}
+            return response.json()
         except Exception as e:
             logger.error(f"Error creating bulk Steadfast orders: {str(e)}")
             return {'status': 'error', 'message': str(e)}
@@ -85,15 +64,7 @@ class SteadfastCourier:
         
         try:
             response = requests.get(url, headers=self.headers)
-            
-            # Log the raw response for debugging
-            logger.info(f"Steadfast status response: {response.status_code} - {response.text}")
-            
-            try:
-                return response.json()
-            except json.JSONDecodeError:
-                logger.error(f"Failed to parse JSON response: {response.text}")
-                return {'status': 'error', 'message': 'Invalid JSON response'}
+            return response.json()
         except Exception as e:
             logger.error(f"Error checking status by invoice: {str(e)}")
             return {'status': 'error', 'message': str(e)}
@@ -104,15 +75,7 @@ class SteadfastCourier:
         
         try:
             response = requests.get(url, headers=self.headers)
-            
-            # Log the raw response for debugging
-            logger.info(f"Steadfast tracking response: {response.status_code} - {response.text}")
-            
-            try:
-                return response.json()
-            except json.JSONDecodeError:
-                logger.error(f"Failed to parse JSON response: {response.text}")
-                return {'status': 'error', 'message': 'Invalid JSON response'}
+            return response.json()
         except Exception as e:
             logger.error(f"Error checking status by tracking: {str(e)}")
             return {'status': 'error', 'message': str(e)}
@@ -123,12 +86,7 @@ class SteadfastCourier:
         
         try:
             response = requests.get(url, headers=self.headers)
-            
-            try:
-                return response.json()
-            except json.JSONDecodeError:
-                logger.error(f"Failed to parse JSON response: {response.text}")
-                return {'status': 'error', 'message': 'Invalid JSON response'}
+            return response.json()
         except Exception as e:
             logger.error(f"Error getting balance: {str(e)}")
             return {'status': 'error', 'message': str(e)}

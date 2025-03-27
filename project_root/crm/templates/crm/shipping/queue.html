@@ -6,115 +6,200 @@
 {% block page_title %}Shipping Queue{% endblock %}
 
 {% block header_buttons %}
-<button id="select-all-btn" class="btn btn-sm btn-outline-secondary me-2">
-    <i class="fas fa-check-square"></i> Select All
-</button>
-<button id="ship-selected-btn" class="btn btn-sm btn-primary" disabled>
-    <i class="fas fa-shipping-fast"></i> Ship Selected
-</button>
-<button id="refresh-status-btn" class="btn btn-sm btn-info ms-2">
-    <i class="fas fa-sync-alt"></i> Refresh Statuses
-</button>
+<div class="btn-group me-2">
+    <button class="btn btn-sm btn-outline-secondary" id="select-all">
+        <i class="fas fa-check-square"></i> Select All
+    </button>
+    <a href="#" class="btn btn-sm btn-outline-info" id="refresh-statuses">
+        <i class="fas fa-sync-alt"></i> Refresh Statuses
+    </a>
+</div>
 {% endblock %}
 
 {% block content %}
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">Orders Ready for Shipping</h6>
-        <div class="ml-2">
-            <span id="selected-count" class="badge bg-primary">0 selected</span>
+<!-- Status Filter Tabs -->
+<div class="mb-3">
+    <ul class="nav nav-pills">
+        <li class="nav-item">
+            <a class="nav-link {% if not request.GET.status %}active{% endif %}" href="{% url 'crm:shipping_queue' %}">
+                All Orders
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.GET.status == 'pending' %}active{% endif %}" href="{% url 'crm:shipping_queue' %}?status=pending">
+                Pending
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.GET.status == 'approval_pending' %}active{% endif %}" href="{% url 'crm:shipping_queue' %}?status=approval_pending">
+                Approval Pending
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.GET.status == 'delivered' %}active{% endif %}" href="{% url 'crm:shipping_queue' %}?status=delivered">
+                Delivered
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.GET.status == 'partly_delivered' %}active{% endif %}" href="{% url 'crm:shipping_queue' %}?status=partly_delivered">
+                Partly Delivered
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.GET.status == 'cancelled' %}active{% endif %}" href="{% url 'crm:shipping_queue' %}?status=cancelled">
+                Cancelled
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if request.GET.status == 'in_review' %}active{% endif %}" href="{% url 'crm:shipping_queue' %}?status=in_review">
+                In Review
+            </a>
+        </li>
+    </ul>
+</div>
+
+<!-- Bulk actions toolbar (initially hidden) -->
+<div id="bulk-actions-toolbar" class="alert alert-info mb-3" style="display: none;">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <span id="selected-count">0 orders selected</span>
         </div>
-    </div>
-    <div class="card-body">
-        <form id="bulk-ship-form" action="{% url 'crm:bulk_ship_orders' %}" method="post">
-            {% csrf_token %}
-            <input type="hidden" name="order_ids" id="selected-order-ids">
-            
-            <div class="table-responsive">
-                <table class="table table-bordered" id="shippingTable" width="100%" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th style="width: 40px;">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="select-all-orders">
-                                </div>
-                            </th>
-                            <th>Order #</th>
-                            <th>Customer</th>
-                            <th>Date</th>
-                            <th>Total</th>
-                            <th>Payment Method</th>
-                            <th>Courier Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for order in orders %}
-                        <tr>
-                            <td>
-                                <div class="form-check">
-                                    <input class="form-check-input order-checkbox" type="checkbox" value="{{ order.id }}">
-                                </div>
-                            </td>
-                            <td>#{{ order.id }}</td>
-                            <td>
-                                {% if order.customer %}
-                                    {{ order.customer.get_full_name|default:order.customer.username }}
-                                {% else %}
-                                    Guest
-                                {% endif %}
-                            </td>
-                            <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
-                            <td>৳{{ order.total_amount|floatformat:2 }}</td>
-                            <td>{{ order.payment_method }}</td>
-                            <td class="courier-status" data-order-id="{{ order.id }}">
-                                {% if order.tracking_code %}
-                                    <span class="badge {% if order.delivery_status == 'delivered' %}bg-success{% elif order.delivery_status == 'cancelled' %}bg-danger{% elif order.delivery_status == 'partly_delivered' %}bg-warning{% elif order.delivery_status == 'in_review' %}bg-info{% elif order.delivery_status == 'approval_pending' %}bg-secondary{% else %}bg-primary{% endif %}">
-                                        {{ order.delivery_status|default:"pending"|title }}
-                                    </span>
-                                {% else %}
-                                    <span class="badge bg-secondary">Not Shipped</span>
-                                {% endif %}
-                                <a href="#" class="refresh-status-btn ms-2" data-order-id="{{ order.id }}" data-tracking-code="{{ order.tracking_code }}" title="Refresh Status">
-                                    <i class="fas fa-sync-alt"></i>
-                                </a>
-                            </td>
-                            <td>
-                                <div class="btn-group">
-                                    <a href="{% url 'crm:order_detail' order.id %}" class="btn btn-sm btn-info">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    {% if not order.tracking_code %}
-                                    <a href="{% url 'crm:ship_order' order.id %}" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-shipping-fast"></i>
-                                    </a>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="8" class="text-center">No orders ready for shipping</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </form>
+        <div class="btn-group">
+            <button class="btn btn-outline-primary btn-sm" id="update-status-btn">
+                <i class="fas fa-tag"></i> Update Status
+            </button>
+            <button class="btn btn-primary btn-sm" id="ship-selected-btn">
+                <i class="fas fa-shipping-fast"></i> Ship Selected
+            </button>
+            <button class="btn btn-outline-danger btn-sm" id="delete-selected-btn">
+                <i class="fas fa-trash"></i> Delete Selected
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" id="clear-selection-btn">
+                <i class="fas fa-times"></i> Clear Selection
+            </button>
+        </div>
     </div>
 </div>
 
-<!-- Shipping Confirmation Modal -->
-<div class="modal fade" id="shippingConfirmationModal" tabindex="-1" aria-labelledby="shippingConfirmationModalLabel" aria-hidden="true">
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Orders Ready for Shipping</h6>
+        <small class="text-muted">{{ ready_for_shipping_count }} orders ready</small>
+    </div>
+    <div class="card-body">
+        {% csrf_token %}
+        <div class="table-responsive">
+            <table class="table table-bordered" id="shippingTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">
+                            <input type="checkbox" id="select-all-checkbox">
+                        </th>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Payment Method</th>
+                        <th>Courier Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr data-status="{{ order.delivery_status|default:'not_shipped' }}">
+                        <td>
+                            <input type="checkbox" class="order-checkbox" value="{{ order.id }}">
+                        </td>
+                        <td>#{{ order.id }}</td>
+                        <td>
+                            {% if order.customer %}
+                                {{ order.customer.get_full_name|default:order.customer.username }}
+                            {% else %}
+                                Guest
+                            {% endif %}
+                        </td>
+                        <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
+                        <td>৳{{ order.total_amount|floatformat:2 }}</td>
+                        <td>{{ order.payment_method }}</td>
+                        <td class="courier-status" data-order-id="{{ order.id }}">
+                            {% if order.tracking_code %}
+                                <span class="badge {% if order.delivery_status == 'delivered' %}bg-success{% elif order.delivery_status == 'cancelled' %}bg-danger{% elif order.delivery_status == 'partly_delivered' %}bg-warning{% elif order.delivery_status == 'in_review' %}bg-info{% elif order.delivery_status == 'approval_pending' %}bg-secondary{% else %}bg-primary{% endif %}">
+                                    {% with status=order.delivery_status|default:"pending"|title %}
+                                        {{ status|cut:"_"|title }}
+                                    {% endwith %}
+                                </span>
+                                <a href="#" class="refresh-status-btn ms-2" data-order-id="{{ order.id }}" data-tracking-code="{{ order.tracking_code }}">
+                                    <i class="fas fa-sync-alt"></i>
+                                </a>
+                            {% else %}
+                                <span class="badge bg-secondary">Not Shipped</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{% url 'crm:order_detail' order.id %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if not order.tracking_code %}
+                                <a href="{% url 'crm:ship_order' order.id %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-shipping-fast"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">No orders ready for shipping</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Status Update Modal -->
+<div class="modal fade" id="bulkStatusModal" tabindex="-1" aria-labelledby="bulkStatusModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="shippingConfirmationModalLabel">Confirm Shipping</h5>
+                <h5 class="modal-title" id="bulkStatusModalLabel">Update Order Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="bulk-status-form" method="post" action="{% url 'crm:bulk_update_status' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" name="order_ids" id="bulk-status-order-ids">
+                    <div class="mb-3">
+                        <label for="bulk-status" class="form-label">Select New Status</label>
+                        <select class="form-select" id="bulk-status" name="status">
+                            {% for status in statuses %}
+                            <option value="{{ status.id }}">{{ status.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Ship orders confirmation modal -->
+<div class="modal fade" id="shipConfirmModal" tabindex="-1" aria-labelledby="shipConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="shipConfirmModalLabel">Ship Orders</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to ship <span id="ship-count">0</span> orders with Steadfast Courier?</p>
-                <p>This will create shipping consignments for all selected orders and update their status.</p>
+                <p>This will create shipping consignments for all selected orders.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -123,199 +208,290 @@
         </div>
     </div>
 </div>
+
+<!-- Delete orders confirmation modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">Delete Orders</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <span id="delete-count">0</span> orders?</p>
+                <p class="text-danger"><strong>Warning:</strong> This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-btn">Delete Orders</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    $(document).ready(function() {
-        // DataTable initialization
-        $('#shippingTable').DataTable({
-            order: [[3, 'desc']]  // Sort by date
-        });
-        
-        // Select all orders
-        $('#select-all-orders').on('change', function() {
-            $('.order-checkbox').prop('checked', $(this).prop('checked'));
-            updateSelectionCount();
-        });
-        
-        // Select all button (outside table)
-        $('#select-all-btn').on('click', function() {
-            const currentState = $('#select-all-orders').prop('checked');
-            $('#select-all-orders').prop('checked', !currentState);
-            $('.order-checkbox').prop('checked', !currentState);
-            updateSelectionCount();
-        });
-        
-        // Individual checkbox change
-        $(document).on('change', '.order-checkbox', function() {
-            updateSelectionCount();
-            
-            // Update select all checkbox state
-            if ($('.order-checkbox:checked').length === $('.order-checkbox').length) {
-                $('#select-all-orders').prop('checked', true);
-            } else {
-                $('#select-all-orders').prop('checked', false);
-            }
-        });
-        
-        // Ship selected button
-        $('#ship-selected-btn').on('click', function() {
-            const selectedCount = $('.order-checkbox:checked').length;
-            $('#ship-count').text(selectedCount);
-            $('#shippingConfirmationModal').modal('show');
-        });
-        
-        // Confirm shipping
-        $('#confirm-ship-btn').on('click', function() {
-            const selectedIds = getSelectedOrderIds();
-            console.log('Selected order IDs for shipping:', selectedIds);
-            
-            if (selectedIds.length === 0) {
-                alert('Please select at least one order to ship.');
-                return;
-            }
-            
-            $('#selected-order-ids').val(selectedIds.join(','));
-            
-            // Add a hidden field to indicate this is coming from the shipping queue
-            if (!$('#from-queue-field').length) {
-                $('#bulk-ship-form').append('<input type="hidden" id="from-queue-field" name="from_queue" value="true">');
-            }
-            
-            // Submit the form
-            $('#bulk-ship-form').submit();
-        });
-        
-        // Update selection count and button state
-        function updateSelectionCount() {
-            const selectedCount = $('.order-checkbox:checked').length;
-            $('#selected-count').text(selectedCount + ' selected');
-            $('#ship-selected-btn').prop('disabled', selectedCount === 0);
-        }
-        
-        // Get selected order IDs
-        function getSelectedOrderIds() {
-            return $('.order-checkbox:checked').map(function() {
-                return $(this).val();
-            }).get();
-        }
-        
-        // Initialize selection count
-        updateSelectionCount();
-        
-        // Individual refresh status buttons
-        $('.refresh-status-btn').on('click', function(e) {
-            e.preventDefault();
-            const orderId = $(this).data('order-id');
-            const trackingCode = $(this).data('tracking-code');
-            
-            if (!trackingCode) {
-                alert('This order has not been shipped yet.');
-                return;
-            }
-            
-            refreshOrderStatus(orderId, trackingCode);
-        });
-        
-        // Refresh all statuses button
-        $('#refresh-status-btn').on('click', function() {
-            refreshAllStatuses();
-        });
-        
-        // Function to refresh a single order status
-        function refreshOrderStatus(orderId, trackingCode) {
-            if (!trackingCode) return;
-            
-            const statusCell = $(`.courier-status[data-order-id="${orderId}"]`);
-            statusCell.html('<i class="fas fa-spinner fa-spin"></i> Updating...');
-            
-            $.ajax({
-                url: '/crm/api/check-status/',
-                type: 'POST',
-                data: {
-                    order_id: orderId,
-                    tracking_code: trackingCode,
-                    csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val()
-                },
-                success: function(response) {
-                    if (response.success) {
-                        let badgeClass = 'bg-primary';
-                        
-                        // Determine badge color based on status
-                        switch(response.status.toLowerCase()) {
-                            case 'delivered':
-                                badgeClass = 'bg-success';
-                                break;
-                            case 'cancelled':
-                                badgeClass = 'bg-danger';
-                                break;
-                            case 'partly_delivered':
-                            case 'partly delivered':
-                                badgeClass = 'bg-warning';
-                                break;
-                            case 'in_review':
-                                badgeClass = 'bg-info';
-                                break;
-                            case 'approval_pending':
-                            case 'approval pending':
-                                badgeClass = 'bg-secondary';
-                                break;
-                        }
-                        
-                        // Format the status text (replace underscores with spaces and capitalize)
-                        const statusText = response.status
-                            .replace(/_/g, ' ')
-                            .replace(/\w\S*/g, function(txt) {
-                                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-                            });
-                        
-                        // Update the status cell
-                        statusCell.html(`
-                            <span class="badge ${badgeClass}">${statusText}</span>
-                            <a href="#" class="refresh-status-btn ms-2" data-order-id="${orderId}" data-tracking-code="${trackingCode}" title="Refresh Status">
-                                <i class="fas fa-sync-alt"></i>
-                            </a>
-                        `);
-                        
-                        // Re-bind the click event for the new refresh button
-                        statusCell.find('.refresh-status-btn').on('click', function(e) {
-                            e.preventDefault();
-                            refreshOrderStatus(orderId, trackingCode);
-                        });
-                    } else {
-                        statusCell.html(`
-                            <span class="badge bg-danger">Error</span>
-                            <a href="#" class="refresh-status-btn ms-2" data-order-id="${orderId}" data-tracking-code="${trackingCode}" title="Refresh Status">
-                                <i class="fas fa-sync-alt"></i>
-                            </a>
-                        `);
-                        console.error('Error refreshing status:', response.message);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    statusCell.html(`
-                        <span class="badge bg-danger">Error</span>
-                        <a href="#" class="refresh-status-btn ms-2" data-order-id="${orderId}" data-tracking-code="${trackingCode}" title="Refresh Status">
-                            <i class="fas fa-sync-alt"></i>
-                        </a>
-                    `);
-                    console.error('AJAX error:', error);
-                }
-            });
-        }
-        
-        // Function to refresh all statuses
-        function refreshAllStatuses() {
-            $('.refresh-status-btn').each(function() {
-                const orderId = $(this).data('order-id');
-                const trackingCode = $(this).data('tracking-code');
-                
-                if (trackingCode) {
-                    refreshOrderStatus(orderId, trackingCode);
-                }
-            });
-        }
+$(document).ready(function() {
+    // Initialize DataTable
+    var table = $('#shippingTable').DataTable({
+        "order": [[3, "desc"]] // Sort by date column descending by default
     });
+    
+    // Select all checkbox functionality
+    $('#select-all-checkbox').change(function() {
+        $('.order-checkbox').prop('checked', this.checked);
+        updateBulkActionsToolbar();
+    });
+    
+    // Select all button (outside table)
+    $('#select-all').click(function() {
+        var checkState = !$('#select-all-checkbox').prop('checked');
+        $('#select-all-checkbox').prop('checked', checkState);
+        $('.order-checkbox').prop('checked', checkState);
+        updateBulkActionsToolbar();
+    });
+    
+    // Individual checkbox change event
+    $(document).on('change', '.order-checkbox', function() {
+        updateBulkActionsToolbar();
+        
+        // Update select all checkbox state
+        var allChecked = $('.order-checkbox:checked').length === $('.order-checkbox').length;
+        $('#select-all-checkbox').prop('checked', allChecked);
+    });
+    
+    // Clear selection button
+    $('#clear-selection-btn').click(function() {
+        $('.order-checkbox').prop('checked', false);
+        $('#select-all-checkbox').prop('checked', false);
+        updateBulkActionsToolbar();
+    });
+    
+    // Update bulk actions toolbar visibility and counts
+    function updateBulkActionsToolbar() {
+        var checkedCount = $('.order-checkbox:checked').length;
+        $('#selected-count').text(checkedCount + ' orders selected');
+        
+        if (checkedCount > 0) {
+            $('#bulk-actions-toolbar').show();
+            $('#ship-selected-btn').prop('disabled', false);
+            $('#update-status-btn').prop('disabled', false);
+            $('#delete-selected-btn').prop('disabled', false);
+        } else {
+            $('#bulk-actions-toolbar').hide();
+        }
+    }
+    
+    // Get selected order IDs
+    function getSelectedOrderIds() {
+        return $('.order-checkbox:checked').map(function() {
+            return $(this).val();
+        }).get();
+    }
+    
+    // Bulk update status button click
+    $('#update-status-btn').click(function() {
+        var selectedIds = getSelectedOrderIds();
+        if (selectedIds.length === 0) {
+            alert('Please select at least one order');
+            return;
+        }
+        
+        $('#bulk-status-order-ids').val(selectedIds.join(','));
+        $('#bulkStatusModal').modal('show');
+    });
+    
+    // Ship selected button click
+    $('#ship-selected-btn').click(function() {
+        var selectedIds = getSelectedOrderIds();
+        if (selectedIds.length === 0) {
+            alert('Please select at least one order to ship');
+            return;
+        }
+        
+        $('#ship-count').text(selectedIds.length);
+        $('#shipConfirmModal').modal('show');
+    });
+    
+    // Confirm ship button click
+    $('#confirm-ship-btn').click(function() {
+        var selectedIds = getSelectedOrderIds();
+        
+        // Create form for submission
+        var form = $('<form></form>').attr({
+            method: 'post',
+            action: '{% url "crm:bulk_ship_orders" %}'
+        });
+        
+        // Add CSRF token
+        form.append($('<input>').attr({
+            type: 'hidden',
+            name: 'csrfmiddlewaretoken',
+            value: $('input[name="csrfmiddlewaretoken"]').val()
+        }));
+        
+        // Add order IDs
+        form.append($('<input>').attr({
+            type: 'hidden',
+            name: 'order_ids',
+            value: selectedIds.join(',')
+        }));
+        
+        // Add from_queue flag
+        form.append($('<input>').attr({
+            type: 'hidden',
+            name: 'from_queue',
+            value: 'true'
+        }));
+        
+        // Add form to document and submit
+        $('body').append(form);
+        form.submit();
+    });
+    
+    // Delete selected button click
+    $('#delete-selected-btn').click(function() {
+        var selectedIds = getSelectedOrderIds();
+        if (selectedIds.length === 0) {
+            alert('Please select at least one order to delete');
+            return;
+        }
+        
+        $('#delete-count').text(selectedIds.length);
+        $('#deleteConfirmModal').modal('show');
+    });
+    
+    // Confirm delete button click
+    $('#confirm-delete-btn').click(function() {
+        var selectedIds = getSelectedOrderIds();
+        
+        // Create form for submission
+        var form = $('<form></form>').attr({
+            method: 'post',
+            action: '{% url "crm:bulk_delete_orders" %}'
+        });
+        
+        // Add CSRF token
+        form.append($('<input>').attr({
+            type: 'hidden',
+            name: 'csrfmiddlewaretoken',
+            value: $('input[name="csrfmiddlewaretoken"]').val()
+        }));
+        
+        // Add order IDs
+        form.append($('<input>').attr({
+            type: 'hidden',
+            name: 'order_ids',
+            value: selectedIds.join(',')
+        }));
+        
+        // Add form to document and submit
+        $('body').append(form);
+        form.submit();
+    });
+    
+    // Individual refresh status buttons
+    $('.refresh-status-btn').click(function(e) {
+        e.preventDefault();
+        var orderId = $(this).data('order-id');
+        var trackingCode = $(this).data('tracking-code');
+        
+        if (!trackingCode) {
+            alert('This order has not been shipped yet');
+            return;
+        }
+        
+        refreshOrderStatus(orderId, trackingCode);
+    });
+    
+    // Refresh all statuses button
+    $('#refresh-statuses').click(function(e) {
+        e.preventDefault();
+        refreshAllStatuses();
+    });
+    
+    // Function to refresh a single order status
+    function refreshOrderStatus(orderId, trackingCode) {
+        var statusCell = $('.courier-status[data-order-id="' + orderId + '"]');
+        statusCell.html('<i class="fas fa-spinner fa-spin"></i> Updating...');
+        
+        $.ajax({
+            url: '{% url "crm:check_status_api" %}',
+            type: 'POST',
+            data: {
+                'order_id': orderId,
+                'tracking_code': trackingCode,
+                'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    var badgeClass = 'bg-primary';
+                    var status = response.status.toLowerCase();
+                    
+                    // Determine badge color based on status
+                    if (status.includes('delivered') && !status.includes('partly') && !status.includes('partial')) {
+                        badgeClass = 'bg-success';
+                    } else if (status.includes('cancelled')) {
+                        badgeClass = 'bg-danger';
+                    } else if (status.includes('partly') || status.includes('partial')) {
+                        badgeClass = 'bg-warning';
+                    } else if (status.includes('review')) {
+                        badgeClass = 'bg-info';
+                    } else if (status.includes('approval') || status.includes('pending')) {
+                        badgeClass = 'bg-secondary';
+                    }
+                    
+                    // Format status text
+                    var statusText = response.status
+                        .replace(/_/g, ' ')
+                        .replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+                    
+                    // Update status cell
+                    statusCell.html('<span class="badge ' + badgeClass + '">' + statusText + '</span> ' +
+                        '<a href="#" class="refresh-status-btn ms-2" data-order-id="' + orderId + '" data-tracking-code="' + trackingCode + '">' +
+                        '<i class="fas fa-sync-alt"></i></a>');
+                    
+                    // Re-bind click event
+                    statusCell.find('.refresh-status-btn').click(function(e) {
+                        e.preventDefault();
+                        refreshOrderStatus(orderId, trackingCode);
+                    });
+                    
+                    // Update row status attribute for filtering
+                    statusCell.closest('tr').attr('data-status', response.status);
+                } else {
+                    statusCell.html('<span class="badge bg-danger">Error</span> ' +
+                        '<a href="#" class="refresh-status-btn ms-2" data-order-id="' + orderId + '" data-tracking-code="' + trackingCode + '">' +
+                        '<i class="fas fa-sync-alt"></i></a>');
+                        
+                    console.error('Error refreshing status:', response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                statusCell.html('<span class="badge bg-danger">Error</span> ' +
+                    '<a href="#" class="refresh-status-btn ms-2" data-order-id="' + orderId + '" data-tracking-code="' + trackingCode + '">' +
+                    '<i class="fas fa-sync-alt"></i></a>');
+                    
+                console.error('AJAX error:', error);
+            }
+        });
+    }
+    
+    // Function to refresh all statuses
+    function refreshAllStatuses() {
+        $('.refresh-status-btn').each(function() {
+            var orderId = $(this).data('order-id');
+            var trackingCode = $(this).data('tracking-code');
+            
+            if (trackingCode) {
+                refreshOrderStatus(orderId, trackingCode);
+            }
+        });
+    }
+    
+    // Initialize
+    updateBulkActionsToolbar();
+});
 </script>
 {% endblock %}

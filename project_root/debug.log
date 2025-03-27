@@ -5949,9 +5949,20 @@ WARNING 2025-03-26 21:23:16,489 log Not Found: /favicon.ico
 INFO 2025-03-26 21:24:38,227 steadfast Sending bulk orders to Steadfast: 1 orders
 DEBUG 2025-03-26 21:24:38,235 connectionpool Starting new HTTPS connection (1): portal.packzy.com:443
 DEBUG 2025-03-26 21:24:38,538 connectionpool https://portal.packzy.com:443 "POST /api/v1/create_order/bulk-order HTTP/1.1" 200 None
-INFO 2025-03-26 21:49:52,757 autoreload Watching for file changes with StatReloader
-WARNING 2025-03-26 21:50:01,686 log Not Found: /favicon.ico
-ERROR 2025-03-26 21:50:40,882 log Internal Server Error: /crm/reports/
+INFO 2025-03-27 14:33:28,022 autoreload Watching for file changes with StatReloader
+WARNING 2025-03-27 14:33:37,501 log Not Found: /favicon.ico
+INFO 2025-03-27 15:25:42,910 steadfast Sending bulk orders to Steadfast: 1 orders
+DEBUG 2025-03-27 15:25:42,951 connectionpool Starting new HTTPS connection (1): portal.packzy.com:443
+DEBUG 2025-03-27 15:25:43,198 connectionpool https://portal.packzy.com:443 "POST /api/v1/create_order/bulk-order HTTP/1.1" 200 None
+INFO 2025-03-27 15:34:41,573 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-27 15:34:42,679 autoreload Watching for file changes with StatReloader
+INFO 2025-03-27 15:44:55,389 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-27 15:44:56,647 autoreload Watching for file changes with StatReloader
+INFO 2025-03-27 15:49:26,158 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-27 15:49:27,638 autoreload Watching for file changes with StatReloader
+INFO 2025-03-27 15:50:15,416 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-27 15:50:16,246 autoreload Watching for file changes with StatReloader
+ERROR 2025-03-27 15:50:24,115 log Internal Server Error: /crm/shipping/queue/
 Traceback (most recent call last):
   File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
     response = get_response(request)
@@ -5965,69 +5976,7 @@ Traceback (most recent call last):
   File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\decorators.py", line 33, in wrapper
     return view_func(request, *args, **kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 996, in reports_dashboard
-    return render(request, 'crm/reports/dashboard.html', {})
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
-    content = loader.render_to_string(template_name, context, request, using=using)
-              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
-    template = get_template(template_name, using=using)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader.py", line 19, in get_template
-    raise TemplateDoesNotExist(template_name, chain=chain)
-django.template.exceptions.TemplateDoesNotExist: crm/reports/dashboard.html
-ERROR 2025-03-26 21:50:46,401 log Internal Server Error: /crm/inventory/
-Traceback (most recent call last):
-  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
-    response = get_response(request)
-               ^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
-    response = wrapped_callback(request, *callback_args, **callback_kwargs)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
-    return view_func(request, *args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\decorators.py", line 33, in wrapper
-    return view_func(request, *args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 986, in inventory_list
-    return render(request, 'crm/inventory/list.html', {'products': products})
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
-    content = loader.render_to_string(template_name, context, request, using=using)
-              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
-    template = get_template(template_name, using=using)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader.py", line 19, in get_template
-    raise TemplateDoesNotExist(template_name, chain=chain)
-django.template.exceptions.TemplateDoesNotExist: crm/inventory/list.html
-INFO 2025-03-26 22:54:03,603 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\services\steadfast.py changed, reloading.
-INFO 2025-03-26 22:54:05,670 autoreload Watching for file changes with StatReloader
-INFO 2025-03-26 22:55:36,961 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
-INFO 2025-03-26 22:55:38,437 autoreload Watching for file changes with StatReloader
-INFO 2025-03-26 22:57:35,890 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
-INFO 2025-03-26 22:57:37,531 autoreload Watching for file changes with StatReloader
-INFO 2025-03-26 22:59:20,082 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
-INFO 2025-03-26 22:59:21,674 autoreload Watching for file changes with StatReloader
-INFO 2025-03-26 23:05:59,802 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
-INFO 2025-03-26 23:06:01,496 autoreload Watching for file changes with StatReloader
-ERROR 2025-03-26 23:06:06,612 log Internal Server Error: /crm/shipping/queue/
-Traceback (most recent call last):
-  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
-    response = get_response(request)
-               ^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
-    response = wrapped_callback(request, *callback_args, **callback_kwargs)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
-    return view_func(request, *args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\decorators.py", line 33, in wrapper
-    return view_func(request, *args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 1946, in shipping_queue
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 1967, in shipping_queue
     return render(request, 'crm/shipping/queue.html', context)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
@@ -6106,9 +6055,7 @@ Traceback (most recent call last):
   File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 611, in find_filter
     raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
 django.template.exceptions.TemplateSyntaxError: Invalid filter: 'replace'
-INFO 2025-03-26 23:06:33,392 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
-INFO 2025-03-26 23:06:34,636 autoreload Watching for file changes with StatReloader
-ERROR 2025-03-26 23:06:42,401 log Internal Server Error: /crm/shipping/queue/
+ERROR 2025-03-27 15:50:28,590 log Internal Server Error: /crm/shipping/queue/
 Traceback (most recent call last):
   File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
     response = get_response(request)
@@ -6122,7 +6069,7 @@ Traceback (most recent call last):
   File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\decorators.py", line 33, in wrapper
     return view_func(request, *args, **kwargs)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 1947, in shipping_queue
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 1967, in shipping_queue
     return render(request, 'crm/shipping/queue.html', context)
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
@@ -6201,10 +6148,486 @@ Traceback (most recent call last):
   File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 611, in find_filter
     raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
 django.template.exceptions.TemplateSyntaxError: Invalid filter: 'replace'
-INFO 2025-03-26 23:16:53,679 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
-INFO 2025-03-26 23:16:55,372 autoreload Watching for file changes with StatReloader
-INFO 2025-03-26 23:26:59,218 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
-INFO 2025-03-26 23:27:00,379 autoreload Watching for file changes with StatReloader
-INFO 2025-03-26 23:37:50,567 autoreload Watching for file changes with StatReloader
-INFO 2025-03-26 23:38:15,285 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
-INFO 2025-03-26 23:38:17,459 autoreload Watching for file changes with StatReloader
+ERROR 2025-03-27 15:50:32,117 log Internal Server Error: /crm/shipping/queue/
+Traceback (most recent call last):
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\decorators.py", line 33, in wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 1967, in shipping_queue
+    return render(request, 'crm/shipping/queue.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\backends\django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader_tags.py", line 295, in do_extends
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\defaulttags.py", line 862, in do_for
+    nodelist_loop = parser.parse(
+                    ^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 489, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 487, in parse
+    filter_expression = self.compile_filter(token.contents)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 605, in compile_filter
+    return FilterExpression(token, self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 701, in __init__
+    filter_func = parser.find_filter(filter_name)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 611, in find_filter
+    raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
+django.template.exceptions.TemplateSyntaxError: Invalid filter: 'replace'
+INFO 2025-03-27 15:50:45,637 steadfast Sending order to Steadfast: {'invoice': 'ORD-11', 'recipient_name': 'Shahariar Alom', 'recipient_phone': '01710516644', 'recipient_address': '85/2, Borobag\n\nMirpur-2, 1216', 'cod_amount': 111.0, 'note': 'Order #11'}
+DEBUG 2025-03-27 15:50:45,648 connectionpool Starting new HTTPS connection (1): portal.packzy.com:443
+DEBUG 2025-03-27 15:50:46,022 connectionpool https://portal.packzy.com:443 "POST /api/v1/create_order HTTP/1.1" 200 None
+ERROR 2025-03-27 15:50:58,081 log Internal Server Error: /crm/shipping/queue/
+Traceback (most recent call last):
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\decorators.py", line 33, in wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 1967, in shipping_queue
+    return render(request, 'crm/shipping/queue.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\backends\django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader_tags.py", line 295, in do_extends
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\defaulttags.py", line 862, in do_for
+    nodelist_loop = parser.parse(
+                    ^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 489, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 487, in parse
+    filter_expression = self.compile_filter(token.contents)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 605, in compile_filter
+    return FilterExpression(token, self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 701, in __init__
+    filter_func = parser.find_filter(filter_name)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 611, in find_filter
+    raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
+django.template.exceptions.TemplateSyntaxError: Invalid filter: 'replace'
+ERROR 2025-03-27 15:51:39,726 log Internal Server Error: /crm/shipping/queue/
+Traceback (most recent call last):
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\decorators.py", line 33, in wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 1967, in shipping_queue
+    return render(request, 'crm/shipping/queue.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\backends\django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader_tags.py", line 295, in do_extends
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\defaulttags.py", line 862, in do_for
+    nodelist_loop = parser.parse(
+                    ^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 489, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 487, in parse
+    filter_expression = self.compile_filter(token.contents)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 605, in compile_filter
+    return FilterExpression(token, self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 701, in __init__
+    filter_func = parser.find_filter(filter_name)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 611, in find_filter
+    raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
+django.template.exceptions.TemplateSyntaxError: Invalid filter: 'replace'
+INFO 2025-03-27 15:54:34,215 steadfast Sending order to Steadfast: {'invoice': 'ORD-1', 'recipient_name': 'Customer', 'recipient_phone': '', 'recipient_address': '', 'cod_amount': 0.0, 'note': 'Order #1'}
+DEBUG 2025-03-27 15:54:34,222 connectionpool Starting new HTTPS connection (1): portal.packzy.com:443
+DEBUG 2025-03-27 15:54:38,010 connectionpool https://portal.packzy.com:443 "POST /api/v1/create_order HTTP/1.1" 200 None
+INFO 2025-03-27 15:54:38,012 steadfast Sending order to Steadfast: {'invoice': 'ORD-3', 'recipient_name': 'Shahariar Hasan', 'recipient_phone': '01710516652', 'recipient_address': '85/2, Borobag\n\nMirpur-2, 1216', 'cod_amount': 0.0, 'note': 'Order #3'}
+DEBUG 2025-03-27 15:54:38,014 connectionpool Starting new HTTPS connection (1): portal.packzy.com:443
+DEBUG 2025-03-27 15:54:38,285 connectionpool https://portal.packzy.com:443 "POST /api/v1/create_order HTTP/1.1" 200 None
+INFO 2025-03-27 15:54:38,331 steadfast Sending order to Steadfast: {'invoice': 'ORD-10', 'recipient_name': 'Shahariar Hasan', 'recipient_phone': '01710516652', 'recipient_address': '85/2, Borobag\n\nMirpur-2, 1216', 'cod_amount': 10.0, 'note': 'Order #10'}
+DEBUG 2025-03-27 15:54:38,334 connectionpool Starting new HTTPS connection (1): portal.packzy.com:443
+DEBUG 2025-03-27 15:54:38,602 connectionpool https://portal.packzy.com:443 "POST /api/v1/create_order HTTP/1.1" 200 None
+ERROR 2025-03-27 16:08:25,867 log Internal Server Error: /crm/shipping/queue/
+Traceback (most recent call last):
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\decorators.py", line 33, in wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 1967, in shipping_queue
+    return render(request, 'crm/shipping/queue.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\backends\django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader_tags.py", line 295, in do_extends
+    nodelist = parser.parse()
+               ^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\defaulttags.py", line 862, in do_for
+    nodelist_loop = parser.parse(
+                    ^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\defaulttags.py", line 962, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 489, in parse
+    raise self.error(token, e)
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 487, in parse
+    filter_expression = self.compile_filter(token.contents)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 605, in compile_filter
+    return FilterExpression(token, self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 701, in __init__
+    filter_func = parser.find_filter(filter_name)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 611, in find_filter
+    raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
+django.template.exceptions.TemplateSyntaxError: Invalid filter: 'replace'
+INFO 2025-03-27 16:23:19,552 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-27 16:23:20,741 autoreload Watching for file changes with StatReloader
+INFO 2025-03-27 16:27:00,043 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-27 16:27:01,583 autoreload Watching for file changes with StatReloader
+INFO 2025-03-27 16:35:06,132 steadfast Sending order to Steadfast: {'invoice': 'ORD-19', 'recipient_name': 'Mr X', 'recipient_phone': '01710516111', 'recipient_address': 'xada\n\nMirpur-2, 1216', 'cod_amount': 9.0, 'note': 'Order #19'}
+DEBUG 2025-03-27 16:35:06,169 connectionpool Starting new HTTPS connection (1): portal.packzy.com:443
+DEBUG 2025-03-27 16:35:06,534 connectionpool https://portal.packzy.com:443 "POST /api/v1/create_order HTTP/1.1" 200 None
+INFO 2025-03-27 16:39:46,518 steadfast Sending order to Steadfast: {'invoice': 'ORD-15', 'recipient_name': 'Mr A', 'recipient_phone': '01710516611', 'recipient_address': 'abc aaa\n\nMirpur-2, 1216', 'cod_amount': 10.0, 'note': 'Order #15'}
+DEBUG 2025-03-27 16:39:46,524 connectionpool Starting new HTTPS connection (1): portal.packzy.com:443
+DEBUG 2025-03-27 16:39:48,413 connectionpool https://portal.packzy.com:443 "POST /api/v1/create_order HTTP/1.1" 200 None
+INFO 2025-03-27 16:39:48,486 steadfast Sending order to Steadfast: {'invoice': 'ORD-17', 'recipient_name': 'Mr B', 'recipient_phone': '01710516222', 'recipient_address': 'bb sdsvs\n\nMirpur-2, 1216', 'cod_amount': 111.0, 'note': 'Order #17'}
+DEBUG 2025-03-27 16:39:48,494 connectionpool Starting new HTTPS connection (1): portal.packzy.com:443
+DEBUG 2025-03-27 16:39:48,850 connectionpool https://portal.packzy.com:443 "POST /api/v1/create_order HTTP/1.1" 200 None
+INFO 2025-03-27 16:39:48,901 steadfast Sending order to Steadfast: {'invoice': 'ORD-20', 'recipient_name': 'Mr Zzz', 'recipient_phone': '01710513333', 'recipient_address': 'zzasas\n\nMirpur-2, 1216', 'cod_amount': 1000.0, 'note': 'Order #20'}
+DEBUG 2025-03-27 16:39:48,908 connectionpool Starting new HTTPS connection (1): portal.packzy.com:443
+DEBUG 2025-03-27 16:39:49,212 connectionpool https://portal.packzy.com:443 "POST /api/v1/create_order HTTP/1.1" 200 None
+INFO 2025-03-27 17:33:40,574 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-27 17:33:41,530 autoreload Watching for file changes with StatReloader
+INFO 2025-03-27 17:34:57,698 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-27 17:34:58,914 autoreload Watching for file changes with StatReloader
+INFO 2025-03-27 17:35:31,584 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-27 17:35:32,632 autoreload Watching for file changes with StatReloader
+ERROR 2025-03-27 17:43:48,876 log Internal Server Error: /crm/shipping/queue/
+Traceback (most recent call last):
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\decorators.py", line 33, in wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 2003, in shipping_queue
+    return render(request, 'crm/shipping/queue.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 1008, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 1008, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 1008, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'check_status_api' not found. 'check_status_api' is not a valid view function or pattern name.

@@ -211,78 +211,132 @@
 {% block extra_js %}
 <script>
     $(document).ready(function() {
-        // Select all button functionality
+        // Select all functionality
         $('#select-all-orders').on('change', function() {
             $('.order-checkbox').prop('checked', $(this).prop('checked'));
-            updateSelectionCount();
+            updateBulkActionsToolbar();
         });
         
         // Individual checkbox change
-        $(document).on('change', '.order-checkbox', function() {
-            updateSelectionCount();
+        $('.order-checkbox').on('change', function() {
+            updateBulkActionsToolbar();
         });
         
-        // Update selection count and button state
-        function updateSelectionCount() {
+        // Update bulk actions toolbar visibility
+        function updateBulkActionsToolbar() {
             const selectedCount = $('.order-checkbox:checked').length;
-            $('#selected-count').text(selectedCount + ' selected');
-            $('#ship-selected-btn').prop('disabled', selectedCount === 0);
+            $('.bulk-ship-btn').prop('disabled', selectedCount === 0);
+            
+            if (selectedCount > 0) {
+                $('#bulk-actions-toolbar').show();
+                $('#selected-count').text(selectedCount + ' order' + (selectedCount !== 1 ? 's' : '') + ' selected');
+            } else {
+                $('#bulk-actions-toolbar').hide();
+            }
         }
         
-        // Ship selected button - Direct form submission approach
-        $('#ship-selected-btn').on('click', function(e) {
-            e.preventDefault();
-            const selectedIds = getSelectedOrderIds();
-            
-            if (selectedIds.length === 0) {
-                alert('Please select at least one order to ship.');
-                return;
-            }
-            
-            if (confirm(`Are you sure you want to ship ${selectedIds.length} orders with Steadfast?`)) {
-                // Use a more direct approach - create form elements and submit
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '/crm/orders/bulk-ship/';
-                
-                // Add CSRF token
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-                const csrfInput = document.createElement('input');
-                csrfInput.type = 'hidden';
-                csrfInput.name = 'csrfmiddlewaretoken';
-                csrfInput.value = csrfToken;
-                form.appendChild(csrfInput);
-                
-                // Add order IDs
-                const orderIdsInput = document.createElement('input');
-                orderIdsInput.type = 'hidden';
-                orderIdsInput.name = 'order_ids';
-                orderIdsInput.value = selectedIds.join(',');
-                form.appendChild(orderIdsInput);
-                
-                // Add from_queue flag
-                const queueInput = document.createElement('input');
-                queueInput.type = 'hidden';
-                queueInput.name = 'from_queue';
-                queueInput.value = 'true';
-                form.appendChild(queueInput);
-                
-                // Append to body and submit
-                document.body.appendChild(form);
-                form.submit();
-            }
-        });
-        
-        // Get selected order IDs
+        // Function to get selected order IDs
         function getSelectedOrderIds() {
             return $('.order-checkbox:checked').map(function() {
                 return $(this).val();
             }).get();
         }
         
-        // Initialize count
-        updateSelectionCount();
+        // Bulk status update modal
+        $('#bulkStatusModal').on('show.bs.modal', function() {
+            $('#bulk-status-order-ids').val(getSelectedOrderIds().join(','));
+        });
+        
+        // Bulk export button
+        $('.bulk-export-btn').on('click', function() {
+            const orderIds = getSelectedOrderIds();
+            
+            if (orderIds.length === 0) {
+                alert('Please select at least one order to export');
+                return;
+            }
+            
+            window.location.href = '/crm/orders/export/?ids=' + orderIds.join(',');
+        });
+        
+        // Bulk delete button
+        $('.bulk-delete-btn').on('click', function() {
+            const orderIds = getSelectedOrderIds();
+            
+            if (orderIds.length === 0) {
+                alert('Please select at least one order to delete');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete ' + orderIds.length + ' orders? This action cannot be undone.')) {
+                // Get CSRF token
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                // Send AJAX request
+                fetch('/crm/orders/bulk-delete/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({ order_ids: orderIds })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        window.location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while trying to delete orders');
+                });
+            }
+        });
+        
+            // Bulk shipping
+            $('.bulk-ship-btn').on('click', function() {
+                const selectedIds = getSelectedOrderIds();
+                
+                if (selectedIds.length === 0) {
+                    alert('Please select at least one order to ship');
+                    return;
+                }
+                
+                if (confirm(`Are you sure you want to ship ${selectedIds.length} orders with Steadfast?`)) {
+                    // Create a form and submit
+                    const form = $('<form></form>').attr({
+                        method: 'post',
+                        action: '{% url "crm:bulk_ship_orders" %}'
+                    });
+                    
+                    // Add CSRF token
+                    form.append($('<input>').attr({
+                        type: 'hidden',
+                        name: 'csrfmiddlewaretoken',
+                        value: '{{ csrf_token }}'
+                    }));
+                    
+                    // Add order IDs
+                    form.append($('<input>').attr({
+                        type: 'hidden',
+                        name: 'order_ids',
+                        value: selectedIds.join(',')
+                    }));
+                    
+                    // Append to body and submit
+                    $('body').append(form);
+                    form.submit();
+                }
+            });
+        // Clear selection button
+        $('#clear-selection').on('click', function() {
+            $('.order-checkbox, #select-all-orders').prop('checked', false);
+            updateBulkActionsToolbar();
+        });
     });
- 
 </script>
 {% endblock %}
