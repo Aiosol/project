@@ -6631,3 +6631,178 @@ Traceback (most recent call last):
   File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
     raise NoReverseMatch(msg)
 django.urls.exceptions.NoReverseMatch: Reverse for 'check_status_api' not found. 'check_status_api' is not a valid view function or pattern name.
+ERROR 2025-03-27 17:54:34,283 log Internal Server Error: /crm/shipping/queue/
+Traceback (most recent call last):
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\decorators.py", line 33, in wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 2003, in shipping_queue
+    return render(request, 'crm/shipping/queue.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 1008, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 1008, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 1008, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'check_status_api' not found. 'check_status_api' is not a valid view function or pattern name.
+ERROR 2025-03-27 18:14:35,419 log Internal Server Error: /crm/shipping/queue/
+Traceback (most recent call last):
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\decorators.py", line 33, in wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py", line 2003, in shipping_queue
+    return render(request, 'crm/shipping/queue.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 171, in render
+    return self._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 1008, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader_tags.py", line 159, in render
+    return compiled_parent._render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 163, in _render
+    return self.nodelist.render(context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 1008, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\loader_tags.py", line 65, in render
+    result = block.nodelist.render(context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 1008, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 1008, in <listcomp>
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\base.py", line 969, in render_annotated
+    return self.render(context)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\template\defaulttags.py", line 480, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mshaf\OneDrive\Desktop\project\project_root\venv\Lib\site-packages\django\urls\resolvers.py", line 831, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'check_status_api' not found. 'check_status_api' is not a valid view function or pattern name.
+INFO 2025-03-27 18:15:50,734 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\urls.py changed, reloading.
+INFO 2025-03-27 18:15:52,477 autoreload Watching for file changes with StatReloader
+INFO 2025-03-28 00:33:31,098 autoreload Watching for file changes with StatReloader
+WARNING 2025-03-28 00:34:33,796 log Not Found: /favicon.ico
+INFO 2025-03-28 00:39:57,985 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-28 00:39:59,280 autoreload Watching for file changes with StatReloader
+INFO 2025-03-28 00:40:42,009 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-28 00:40:44,075 autoreload Watching for file changes with StatReloader
+INFO 2025-03-28 00:41:07,358 autoreload Watching for file changes with StatReloader
+INFO 2025-03-28 00:41:56,857 autoreload Watching for file changes with StatReloader
+INFO 2025-03-28 00:50:31,283 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\urls.py changed, reloading.
+INFO 2025-03-28 00:50:32,917 autoreload Watching for file changes with StatReloader
+INFO 2025-03-28 00:51:57,752 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-28 00:51:59,473 autoreload Watching for file changes with StatReloader
+INFO 2025-03-28 00:59:19,169 steadfast Sending order to Steadfast: {'invoice': 'ORD-21', 'recipient_name': 'Shahariar Hasan', 'recipient_phone': '01710516652', 'recipient_address': '85/2, Borobag\n\nMirpur-2, 1216', 'cod_amount': 10.0, 'note': 'Order #21'}
+DEBUG 2025-03-28 00:59:19,184 connectionpool Starting new HTTPS connection (1): portal.packzy.com:443
+DEBUG 2025-03-28 00:59:19,513 connectionpool https://portal.packzy.com:443 "POST /api/v1/create_order HTTP/1.1" 200 None
+INFO 2025-03-28 01:52:42,931 autoreload C:\Users\mshaf\OneDrive\Desktop\project\project_root\crm\views.py changed, reloading.
+INFO 2025-03-28 01:52:44,642 autoreload Watching for file changes with StatReloader
+INFO 2025-03-28 14:26:04,003 autoreload Watching for file changes with StatReloader
+WARNING 2025-03-28 14:26:22,500 log Not Found: /favicon.ico

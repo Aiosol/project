@@ -17,6 +17,9 @@
 {% endblock %}
 
 {% block content %}
+<!-- CRITICAL: CSRF Token that's accessible to the page -->
+{% csrf_token %}
+
 <!-- Status Filter Tabs -->
 <div class="mb-3">
     <ul class="nav nav-pills">
@@ -58,16 +61,14 @@
     </ul>
 </div>
 
-<!-- Bulk actions toolbar (initially hidden) -->
+ 
+
 <div id="bulk-actions-toolbar" class="alert alert-info mb-3" style="display: none;">
     <div class="d-flex justify-content-between align-items-center">
         <div>
             <span id="selected-count">0 orders selected</span>
         </div>
         <div class="btn-group">
-            <button class="btn btn-outline-primary btn-sm" id="update-status-btn">
-                <i class="fas fa-tag"></i> Update Status
-            </button>
             <button class="btn btn-primary btn-sm" id="ship-selected-btn">
                 <i class="fas fa-shipping-fast"></i> Ship Selected
             </button>
@@ -87,7 +88,6 @@
         <small class="text-muted">{{ ready_for_shipping_count }} orders ready</small>
     </div>
     <div class="card-body">
-        {% csrf_token %}
         <div class="table-responsive">
             <table class="table table-bordered" id="shippingTable" width="100%" cellspacing="0">
                 <thead>
@@ -238,6 +238,9 @@ $(document).ready(function() {
         "order": [[3, "desc"]] // Sort by date column descending by default
     });
     
+    // Debug info
+    console.log("Shipping Queue JS loaded");
+    
     // Select all checkbox functionality
     $('#select-all-checkbox').change(function() {
         $('.order-checkbox').prop('checked', this.checked);
@@ -253,7 +256,7 @@ $(document).ready(function() {
     });
     
     // Individual checkbox change event
-    $(document).on('change', '.order-checkbox', function() {
+    $('.order-checkbox').change(function() {
         updateBulkActionsToolbar();
         
         // Update select all checkbox state
@@ -269,18 +272,30 @@ $(document).ready(function() {
     });
     
     // Update bulk actions toolbar visibility and counts
-    function updateBulkActionsToolbar() {
-        var checkedCount = $('.order-checkbox:checked').length;
-        $('#selected-count').text(checkedCount + ' orders selected');
-        
-        if (checkedCount > 0) {
-            $('#bulk-actions-toolbar').show();
-            $('#ship-selected-btn').prop('disabled', false);
-            $('#update-status-btn').prop('disabled', false);
-            $('#delete-selected-btn').prop('disabled', false);
-        } else {
-            $('#bulk-actions-toolbar').hide();
-        }
+function updateBulkActionsToolbar() {
+    var checkedCount = $('.order-checkbox:checked').length;
+    $('#selected-count').text(checkedCount + ' orders selected');
+    
+    if (checkedCount > 0) {
+        $('#bulk-actions-toolbar').show();
+        $('.bulk-ship-btn').prop('disabled', false);
+    } else {
+        $('#bulk-actions-toolbar').hide();
+    }
+}
+
+// Individual checkbox change event
+$('.order-checkbox').change(function() {
+    updateBulkActionsToolbar();
+    
+    // Update select all checkbox state
+    var allChecked = $('.order-checkbox:checked').length === $('.order-checkbox').length;
+    $('#select-all-checkbox').prop('checked', allChecked);
+});
+    // Update the Orders Ready count
+    function updateReadyCount() {
+        var selectedCount = $('.order-checkbox:checked').length;
+        $('.orders-ready-count').text(selectedCount + ' orders ready');
     }
     
     // Get selected order IDs
@@ -290,21 +305,10 @@ $(document).ready(function() {
         }).get();
     }
     
-    // Bulk update status button click
-    $('#update-status-btn').click(function() {
-        var selectedIds = getSelectedOrderIds();
-        if (selectedIds.length === 0) {
-            alert('Please select at least one order');
-            return;
-        }
-        
-        $('#bulk-status-order-ids').val(selectedIds.join(','));
-        $('#bulkStatusModal').modal('show');
-    });
-    
     // Ship selected button click
     $('#ship-selected-btn').click(function() {
         var selectedIds = getSelectedOrderIds();
+        
         if (selectedIds.length === 0) {
             alert('Please select at least one order to ship');
             return;
@@ -318,17 +322,18 @@ $(document).ready(function() {
     $('#confirm-ship-btn').click(function() {
         var selectedIds = getSelectedOrderIds();
         
-        // Create form for submission
+        // Using EXACT same pattern as orders tab
+        // Create a form and submit
         var form = $('<form></form>').attr({
             method: 'post',
             action: '{% url "crm:bulk_ship_orders" %}'
         });
         
-        // Add CSRF token
+        // Add CSRF token - using the Django template rendered value directly
         form.append($('<input>').attr({
             type: 'hidden',
             name: 'csrfmiddlewaretoken',
-            value: $('input[name="csrfmiddlewaretoken"]').val()
+            value: '{{ csrf_token }}'
         }));
         
         // Add order IDs
@@ -345,7 +350,7 @@ $(document).ready(function() {
             value: 'true'
         }));
         
-        // Add form to document and submit
+        // Append to body and submit
         $('body').append(form);
         form.submit();
     });
@@ -366,29 +371,31 @@ $(document).ready(function() {
     $('#confirm-delete-btn').click(function() {
         var selectedIds = getSelectedOrderIds();
         
-        // Create form for submission
-        var form = $('<form></form>').attr({
-            method: 'post',
-            action: '{% url "crm:bulk_delete_orders" %}'
+        // Get CSRF token using document.querySelector
+        var csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        // Use fetch API like in orders tab
+        fetch('/crm/orders/bulk-delete/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({ order_ids: selectedIds })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                window.location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while trying to delete orders');
         });
-        
-        // Add CSRF token
-        form.append($('<input>').attr({
-            type: 'hidden',
-            name: 'csrfmiddlewaretoken',
-            value: $('input[name="csrfmiddlewaretoken"]').val()
-        }));
-        
-        // Add order IDs
-        form.append($('<input>').attr({
-            type: 'hidden',
-            name: 'order_ids',
-            value: selectedIds.join(',')
-        }));
-        
-        // Add form to document and submit
-        $('body').append(form);
-        form.submit();
     });
     
     // Individual refresh status buttons
@@ -411,18 +418,22 @@ $(document).ready(function() {
         refreshAllStatuses();
     });
     
-    // Function to refresh a single order status
+    // Function to refresh a single order status - using direct URL path
     function refreshOrderStatus(orderId, trackingCode) {
         var statusCell = $('.courier-status[data-order-id="' + orderId + '"]');
         statusCell.html('<i class="fas fa-spinner fa-spin"></i> Updating...');
         
+        // Get CSRF token using document.querySelector
+        var csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        // Use a direct URL instead of a Django URL tag
         $.ajax({
-            url: '{% url "crm:check_status_api" %}',
+            url: '/crm/api/orders/check-status/',
             type: 'POST',
             data: {
                 'order_id': orderId,
                 'tracking_code': trackingCode,
-                'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val()
+                'csrfmiddlewaretoken': csrftoken
             },
             success: function(response) {
                 if (response.success) {
@@ -493,5 +504,264 @@ $(document).ready(function() {
     // Initialize
     updateBulkActionsToolbar();
 });
-</script>
+// Replace all JavaScript in the extra_js block with this clean version
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable
+        var table = $('#shippingTable').DataTable({
+            "order": [[3, "desc"]] // Sort by date column descending by default
+        });
+        
+        console.log("Shipping Queue JS loaded - Clean Version");
+        
+        // Select all checkbox functionality
+        $('#select-all-checkbox').change(function() {
+            console.log("All checkbox changed:", this.checked);
+            $('.order-checkbox').prop('checked', this.checked);
+            updateBulkActionsToolbar();
+        });
+        
+        // Select all button (outside table)
+        $('#select-all').click(function() {
+            console.log("Select all button clicked");
+            var checkState = !$('#select-all-checkbox').prop('checked');
+            $('#select-all-checkbox').prop('checked', checkState);
+            $('.order-checkbox').prop('checked', checkState);
+            updateBulkActionsToolbar();
+        });
+        
+        // Individual checkbox change event
+        $(document).on('change', '.order-checkbox', function() {
+            console.log("Checkbox changed:", this.checked);
+            updateBulkActionsToolbar();
+        });
+        
+        // Clear selection button
+        $('#clear-selection-btn').click(function() {
+            console.log("Clear selection clicked");
+            $('.order-checkbox').prop('checked', false);
+            $('#select-all-checkbox').prop('checked', false);
+            updateBulkActionsToolbar();
+        });
+        
+        // Update bulk actions toolbar visibility and counts
+        function updateBulkActionsToolbar() {
+            var checkedCount = $('.order-checkbox:checked').length;
+            console.log("Selected count:", checkedCount);
+            $('#selected-count').text(checkedCount + ' orders selected');
+            
+            // Update the Orders Ready count text as well
+            $('.orders-ready-count').text(checkedCount + ' orders ready');
+            
+            if (checkedCount > 0) {
+                $('#bulk-actions-toolbar').show();
+            } else {
+                $('#bulk-actions-toolbar').hide();
+            }
+        }
+        
+        // Get selected order IDs
+        function getSelectedOrderIds() {
+            return $('.order-checkbox:checked').map(function() {
+                return $(this).val();
+            }).get();
+        }
+        
+        // Ship selected button click
+        $('#ship-selected-btn').click(function() {
+            console.log("Ship selected button clicked");
+            var selectedIds = getSelectedOrderIds();
+            
+            if (selectedIds.length === 0) {
+                alert('Please select at least one order to ship');
+                return;
+            }
+            
+            $('#ship-count').text(selectedIds.length);
+            $('#shipConfirmModal').modal('show');
+        });
+        
+        // Confirm ship button click
+        $('#confirm-ship-btn').click(function() {
+            console.log("Confirm ship button clicked");
+            var selectedIds = getSelectedOrderIds();
+            
+            // Create a form and submit
+            var form = $('<form></form>').attr({
+                method: 'post',
+                action: '{% url "crm:bulk_ship_orders" %}'
+            });
+            
+            // Add CSRF token
+            form.append($('<input>').attr({
+                type: 'hidden',
+                name: 'csrfmiddlewaretoken',
+                value: '{{ csrf_token }}'
+            }));
+            
+            // Add order IDs
+            form.append($('<input>').attr({
+                type: 'hidden',
+                name: 'order_ids',
+                value: selectedIds.join(',')
+            }));
+            
+            // Add from_queue flag
+            form.append($('<input>').attr({
+                type: 'hidden',
+                name: 'from_queue',
+                value: 'true'
+            }));
+            
+            // Append to body and submit
+            $('body').append(form);
+            form.submit();
+        });
+        
+        // Delete selected button click
+        $('#delete-selected-btn').click(function() {
+            console.log("Delete selected button clicked");
+            var selectedIds = getSelectedOrderIds();
+            if (selectedIds.length === 0) {
+                alert('Please select at least one order to delete');
+                return;
+            }
+            
+            $('#delete-count').text(selectedIds.length);
+            $('#deleteConfirmModal').modal('show');
+        });
+        
+        // Confirm delete button click
+        $('#confirm-delete-btn').click(function() {
+            console.log("Confirm delete button clicked");
+            var selectedIds = getSelectedOrderIds();
+            
+            // Get CSRF token using document.querySelector
+            var csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            // Use fetch API like in orders tab
+            fetch('/crm/orders/bulk-delete/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({ order_ids: selectedIds })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while trying to delete orders');
+            });
+        });
+        
+        // Refresh statuses button
+        $('#refresh-statuses').click(function(e) {
+            e.preventDefault();
+            console.log("Refresh statuses button clicked");
+            refreshAllStatuses();
+        });
+        
+        // Individual refresh status buttons
+        $(document).on('click', '.refresh-status-btn', function(e) {
+            e.preventDefault();
+            var orderId = $(this).data('order-id');
+            var trackingCode = $(this).data('tracking-code');
+            
+            if (!trackingCode) {
+                alert('This order has not been shipped yet');
+                return;
+            }
+            
+            refreshOrderStatus(orderId, trackingCode);
+        });
+        
+        // Function to refresh a single order status
+        function refreshOrderStatus(orderId, trackingCode) {
+            console.log("Refreshing status for order:", orderId);
+            var statusCell = $('.courier-status[data-order-id="' + orderId + '"]');
+            statusCell.html('<i class="fas fa-spinner fa-spin"></i> Updating...');
+            
+            // Get CSRF token
+            var csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            // Make AJAX request to check status
+            $.ajax({
+                url: '/crm/api/orders/check-status/',
+                type: 'POST',
+                data: {
+                    'order_id': orderId,
+                    'tracking_code': trackingCode,
+                    'csrfmiddlewaretoken': csrftoken
+                },
+                success: function(response) {
+                    console.log("Status update response:", response);
+                    if (response.success) {
+                        var badgeClass = 'bg-primary';
+                        var status = response.status.toLowerCase();
+                        
+                        // Determine badge color based on status
+                        if (status.includes('delivered') && !status.includes('partly') && !status.includes('partial')) {
+                            badgeClass = 'bg-success';
+                        } else if (status.includes('cancelled')) {
+                            badgeClass = 'bg-danger';
+                        } else if (status.includes('partly') || status.includes('partial')) {
+                            badgeClass = 'bg-warning';
+                        } else if (status.includes('review')) {
+                            badgeClass = 'bg-info';
+                        } else if (status.includes('approval') || status.includes('pending')) {
+                            badgeClass = 'bg-secondary';
+                        }
+                        
+                        // Format status text
+                        var statusText = response.status
+                            .replace(/_/g, ' ')
+                            .replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+                        
+                        // Update status cell
+                        statusCell.html('<span class="badge ' + badgeClass + '">' + statusText + '</span> ' +
+                            '<a href="#" class="refresh-status-btn ms-2" data-order-id="' + orderId + '" data-tracking-code="' + trackingCode + '">' +
+                            '<i class="fas fa-sync-alt"></i></a>');
+                    } else {
+                        statusCell.html('<span class="badge bg-danger">Error</span> ' +
+                            '<a href="#" class="refresh-status-btn ms-2" data-order-id="' + orderId + '" data-tracking-code="' + trackingCode + '">' +
+                            '<i class="fas fa-sync-alt"></i></a>');
+                            
+                        console.error('Error refreshing status:', response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    statusCell.html('<span class="badge bg-danger">Error</span> ' +
+                        '<a href="#" class="refresh-status-btn ms-2" data-order-id="' + orderId + '" data-tracking-code="' + trackingCode + '">' +
+                        '<i class="fas fa-sync-alt"></i></a>');
+                        
+                    console.error('AJAX error:', error);
+                }
+            });
+        }
+        
+        // Function to refresh all statuses
+        function refreshAllStatuses() {
+            $('.refresh-status-btn').each(function() {
+                var orderId = $(this).data('order-id');
+                var trackingCode = $(this).data('tracking-code');
+                
+                if (trackingCode) {
+                    refreshOrderStatus(orderId, trackingCode);
+                }
+            });
+        }
+        
+        // Initialize
+        updateBulkActionsToolbar();
+    });
+    </script>
 {% endblock %}

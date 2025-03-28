@@ -4,7 +4,6 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
-from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.forms import modelform_factory
 from datetime import datetime, timedelta
@@ -13,9 +12,13 @@ from django.http import HttpResponse, JsonResponse
 import csv
 import os
 from django.conf import settings
-
 from .forms import SalesTargetForm
 
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from orders.models import Order
+from .services.steadfast import SteadfastCourier
 # Import the decorator first
 from .decorators import crm_login_required
 
@@ -1864,16 +1867,13 @@ def check_status_api(request):
             return JsonResponse({'success': False, 'message': 'Order ID and tracking code are required'}, status=400)
         
         # Get the order
-        order = get_object_or_404(Order, id=order_id)
+        order = Order.objects.get(id=order_id)
         
         # Create the courier service
         courier = SteadfastCourier()
         
         # Check status by tracking code
         result = courier.check_status_by_tracking(tracking_code)
-        
-        # Log the response for debugging
-        print(f"Steadfast status check for order {order_id}: {result}")
         
         if result.get('status') == 200:
             delivery_status = result.get('delivery_status', 'unknown')
@@ -1905,34 +1905,6 @@ def check_status_api(request):
             order.delivery_status = standardized_status
             order.save()
             
-            # Update order status based on delivery status if it's delivered or cancelled
-            if standardized_status in ['delivered', 'cancelled'] and status_changed:
-                # Find appropriate order status
-                new_order_status = None
-                
-                if standardized_status == 'delivered':
-                    new_order_status = OrderStatus.objects.filter(name__icontains='deliver').first()
-                elif standardized_status == 'cancelled':
-                    new_order_status = OrderStatus.objects.filter(name__icontains='cancel').first()
-                
-                if new_order_status:
-                    order.status = new_order_status
-                    order.save()
-                    
-                    # Add a note about the status change
-                    if hasattr(order, 'crm_notes') and request.user.is_authenticated:
-                        try:
-                            crm_user = request.user.crm_profile
-                            OrderNote.objects.create(
-                                order=order,
-                                user=crm_user,
-                                note=f"Order status updated automatically. Courier status changed from '{old_status if old_status else 'Unknown'}' to '{standardized_status}'",
-                                is_customer_visible=False
-                            )
-                        except:
-                            # If there's an error adding the note, just continue
-                            pass
-            
             # Return the updated status
             return JsonResponse({
                 'success': True,
@@ -1947,6 +1919,12 @@ def check_status_api(request):
                 'message': error_message,
                 'order_id': order_id
             })
+    except Order.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': f'Order with ID {order_id} not found',
+            'order_id': order_id
+        })
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -1955,26 +1933,32 @@ def check_status_api(request):
             'message': str(e),
             'order_id': order_id if 'order_id' in locals() else None
         })
+    
+# Update this part of the shipping_queue view function in views.py
+
 @crm_login_required
 def shipping_queue(request):
     """View for displaying orders ready to be shipped and tracking shipped orders"""
-    # Get all relevant statuses for shipping queue - including shipped orders
-    processing_statuses = OrderStatus.objects.filter(
-        # Either processing, ready, shipping, or shipped statuses should be included
-        Q(name__icontains='processing') | 
-        Q(name__icontains='ready') | 
-        Q(name__icontains='ship') |
-        Q(name__icontains='deliver'),
-        # Exclude completed and cancelled orders
-        ~Q(is_cancelled=True),
-        ~Q(is_completed=True)
-    )
+    # Get status filter from the request
+    status_filter = request.GET.get('status')
     
-    # Also include any orders with tracking codes regardless of status
-    orders = Order.objects.filter(
-        Q(status__in=processing_statuses) | 
-        Q(tracking_code__isnull=False, tracking_code__gt='')
-    ).order_by('-created_at')
+    # Start with a base queryset
+    orders = Order.objects.all()
+    
+    # Apply filtering based on status
+    if status_filter:
+        if status_filter == 'pending':
+            orders = orders.filter(delivery_status='pending')
+        elif status_filter == 'approval_pending':
+            orders = orders.filter(delivery_status__contains='approval_pending')
+        elif status_filter == 'delivered':
+            orders = orders.filter(delivery_status='delivered')
+        elif status_filter == 'partly_delivered':
+            orders = orders.filter(delivery_status='partly_delivered')
+        elif status_filter == 'cancelled':
+            orders = orders.filter(delivery_status='cancelled')
+        elif status_filter == 'in_review':
+            orders = orders.filter(delivery_status='in_review')
     
     # Get shipped status
     shipped_status = OrderStatus.objects.filter(
@@ -1988,9 +1972,6 @@ def shipping_queue(request):
     ready_for_shipping_count = orders.filter(
         Q(tracking_code__isnull=True) | Q(tracking_code='')
     ).count()
-    
-    # Check for status filter in request
-    status_filter = request.GET.get('status', 'all')
     
     context = {
         'orders': orders,
