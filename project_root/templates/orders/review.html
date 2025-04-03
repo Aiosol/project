@@ -97,12 +97,12 @@
                                     <th class="text-end">৳{{ cart.total_price }}</th>
                                 </tr>
                                 <tr>
-                                    <th>Shipping</th>
-                                    <th class="text-end">Free</th>
+                                    <th>Shipping{% if checkout_data.shipping_location == 'inside_dhaka' %} (Inside Dhaka){% else %} (Outside Dhaka){% endif %}</th>
+                                    <th class="text-end">৳{{ shipping_cost }}</th>
                                 </tr>
                                 <tr>
                                     <th>Total</th>
-                                    <th class="text-end">৳{{ cart.total_price }}</th>
+                                    <th class="text-end">৳{{ total_with_shipping }}</th>
                                 </tr>
                             </tfoot>
                         </table>

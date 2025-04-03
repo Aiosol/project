@@ -1602,6 +1602,7 @@ def ship_order(request, order_id):
             # Update the order with tracking information
             consignment = result.get('consignment', {})
             order.tracking_code = consignment.get('tracking_code')
+            if hasattr(order, 'tracking_number'): order.tracking_number = order.tracking_code
             order.consignment_id = consignment.get('consignment_id')
             order.delivery_status = consignment.get('status')
             
@@ -1751,6 +1752,7 @@ def bulk_ship_orders(request):
                     
                     # Update order tracking info
                     order.tracking_code = consignment.get('tracking_code')
+                    if hasattr(order, 'tracking_number'): order.tracking_number = order.tracking_code
                     order.consignment_id = consignment.get('consignment_id', '')
                     order.delivery_status = consignment.get('status', 'in_review')
                     
@@ -1982,3 +1984,60 @@ def shipping_queue(request):
     }
     
     return render(request, 'crm/shipping/queue.html', context)
+
+@crm_login_required
+def generate_receipt(request, order_id):
+    """Generate a downloadable receipt for an order"""
+    order = get_object_or_404(Order.objects.select_related('status', 'customer'), id=order_id)
+    
+    # Get order items
+    order_items = order.items.select_related('product', 'variant').all()
+    
+    # Calculate order summary values
+    subtotal = sum(item.quantity * item.price for item in order_items if item.quantity and item.price)
+    shipping_cost = order.shipping_cost if hasattr(order, 'shipping_cost') else 0
+    discount_amount = order.discount_amount if hasattr(order, 'discount_amount') else 0
+    total = order.total_amount or (subtotal + shipping_cost - discount_amount)
+    
+    # Get customer information
+    customer_info = {
+        'name': 'Guest',
+        'email': 'Not provided',
+        'phone': 'Not provided'
+    }
+    
+    if order.customer:
+        customer_info = {
+            'name': order.customer.get_full_name() or order.customer.username,
+            'email': order.customer.email or 'Not provided',
+            'phone': getattr(order.customer, 'phone', None) or 
+                     (order.customer.profile.phone_number if hasattr(order.customer, 'profile') else 'Not provided')
+        }
+    elif order.shipping_address:
+        # Extract customer info from shipping address for guest orders
+        import re
+        name_match = re.search(r'^([^\n]+)', order.shipping_address)
+        email_match = re.search(r'Email: ([^\n]+)', order.shipping_address)
+        phone_match = re.search(r'Phone: ([^\n]+)', order.shipping_address)
+        
+        if name_match:
+            customer_info['name'] = name_match.group(1)
+        if email_match:
+            customer_info['email'] = email_match.group(1)
+        if phone_match:
+            customer_info['phone'] = phone_match.group(1)
+    
+    # Create receipt context
+    context = {
+        'order': order,
+        'order_items': order_items,
+        'customer_info': customer_info,
+        'subtotal': subtotal,
+        'shipping_cost': shipping_cost,
+        'discount_amount': discount_amount,
+        'total': total,
+        'today': timezone.now().date()
+    }
+    
+    # Render the receipt
+    return render(request, 'crm/orders/receipt.html', context)

@@ -84,6 +84,23 @@
                             </div>
                         </div>
                         
+                         
+ 
+                        <h5 class="mb-3">Shipping Location</h5>
+                        <div class="mb-4">
+                            {% for radio in form.shipping_location %}
+                                <div class="payment-method-card">
+                                    <div class="form-check">
+                                        {{ radio.tag }}
+                                        <label class="form-check-label" for="{{ radio.id_for_label }}">
+                                            {{ radio.choice_label }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        
                         <h5 class="mb-3">Payment Method</h5>
                         <div class="mb-4">
                             {% for radio in form.payment_method %}
@@ -136,11 +153,11 @@
                             </tr>
                             <tr>
                                 <th>Shipping</th>
-                                <th class="text-end">Free</th>
+                                <th class="text-end">৳70.00</th>
                             </tr>
                             <tr class="summary-total">
                                 <th>Total</th>
-                                <th class="text-end">৳{{ cart.total_price }}</th>
+                                <th class="text-end">৳{{ cart.total_price|add:70 }}</th>
                             </tr>
                         </tfoot>
                     </table>
@@ -178,5 +195,41 @@
             });
         });
     });
-</script>
+ 
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get references to the radio buttons and summary elements
+        const insideDhakaRadio = document.querySelector('input[value="inside_dhaka"]');
+        const outsideDhakaRadio = document.querySelector('input[value="outside_dhaka"]');
+        const shippingCostElement = document.querySelector('.order-summary-card tfoot tr:nth-child(2) th:last-child');
+        const totalElement = document.querySelector('.order-summary-card tfoot tr:last-child th:last-child');
+        
+        // Get the subtotal value
+        const subtotalText = document.querySelector('.order-summary-card tfoot tr:first-child th:last-child').textContent;
+        const subtotal = parseFloat(subtotalText.replace('৳', '').trim());
+        
+        // Function to update shipping and total
+        function updateOrderSummary() {
+            // Determine shipping cost based on selected option
+            const shippingCost = insideDhakaRadio.checked ? 70 : 120;
+            
+            // Update shipping text with location info
+            const locationText = insideDhakaRadio.checked ? "(Inside Dhaka)" : "(Outside Dhaka)";
+            document.querySelector('.order-summary-card tfoot tr:nth-child(2) th:first-child').textContent = `Shipping ${locationText}`;
+            
+            // Update the shipping cost
+            shippingCostElement.textContent = `৳${shippingCost.toFixed(2)}`;
+            
+            // Calculate and update total
+            const total = subtotal + shippingCost;
+            totalElement.textContent = `৳${total.toFixed(2)}`;
+        }
+        
+        // Add event listeners to the radio buttons
+        insideDhakaRadio.addEventListener('change', updateOrderSummary);
+        outsideDhakaRadio.addEventListener('change', updateOrderSummary);
+        
+        // Initial update
+        updateOrderSummary();
+    });
+    </script>
 {% endblock %}

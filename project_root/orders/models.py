@@ -41,3 +41,5 @@ class OrderItem(models.Model):
     def __str__(self):
         product_name = self.product.name if self.product else "Unknown Product"
         return f"{self.quantity or 0} x {product_name}"
+    
+    

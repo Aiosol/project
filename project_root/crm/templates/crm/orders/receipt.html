@@ -1,0 +1,216 @@
+
+{% load static %}
+{% load crm_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt - Order #{{ order.id }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            font-size: 14px;
+        }
+        .receipt {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            padding: 20px;
+        }
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 20px;
+        }
+        .company-logo {
+            max-height: 80px;
+            margin-bottom: 10px;
+        }
+        .receipt-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .receipt-subtitle {
+            color: #777;
+            margin-bottom: 5px;
+        }
+        .info-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .info-box {
+            width: 48%;
+        }
+        .info-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        .info-content {
+            border: 1px solid #eee;
+            padding: 10px;
+            min-height: 100px;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .items-table th, .items-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        .items-table th {
+            background-color: #f9f9f9;
+        }
+        .total-section {
+            width: 300px;
+            margin-left: auto;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+        .total-row.final {
+            font-weight: bold;
+            border-top: 2px solid #eee;
+            padding-top: 10px;
+        }
+        .receipt-footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #777;
+            font-size: 12px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        @media print {
+            body {
+                padding: 0;
+            }
+            .receipt {
+                border: none;
+                padding: 0;
+            }
+            .print-button {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="receipt">
+        <div class="print-button" style="text-align: right; margin-bottom: 10px;">
+            <button onclick="window.print();" style="padding: 5px 10px;">Print Receipt</button>
+        </div>
+        
+        <div class="receipt-header">
+            <img src="{% static 'core/img/logo.png' %}" alt="Company Logo" class="company-logo">
+            <div class="receipt-title">RECEIPT</div>
+            <div class="receipt-subtitle">Order #{{ order.id }}</div>
+            <div>Date: {{ today|date:"F d, Y" }}</div>
+        </div>
+        
+        <div class="info-section">
+            <div class="info-box">
+                <div class="info-title">Bill To:</div>
+                <div class="info-content">
+                    <strong>{{ customer_info.name }}</strong><br>
+                    Email: {{ customer_info.email }}<br>
+                    Phone: {{ customer_info.phone }}<br>
+                    {{ order.billing_address|default:order.shipping_address|linebreaksbr }}
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-title">Ship To:</div>
+                <div class="info-content">
+                    <strong>{{ customer_info.name }}</strong><br>
+                    {{ order.shipping_address|linebreaksbr }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-section">
+            <div class="info-box">
+                <div class="info-title">Payment Information:</div>
+                <div class="info-content">
+                    <strong>Method:</strong> {{ order.payment_method }}<br>
+                    <strong>Status:</strong> {{ order.payment_status }}<br>
+                    <strong>Date:</strong> {{ order.created_at|date:"F d, Y" }}<br>
+                    {% if order.tracking_code %}
+                    <strong>Tracking Number:</strong> {{ order.tracking_code }}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-title">Order Information:</div>
+                <div class="info-content">
+                    <strong>Order Date:</strong> {{ order.created_at|date:"F d, Y" }}<br>
+                    <strong>Order Status:</strong> {{ order.status.name }}<br>
+                    <strong>Shipping Method:</strong> {{ order.shipping_method|default:"Standard Shipping" }}
+                </div>
+            </div>
+        </div>
+        
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Variant</th>
+                    <th>Quantity</th>
+                    <th>Unit Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order_items %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>{% if item.variant %}{{ item.variant.name }}{% else %}N/A{% endif %}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>৳{{ item.price|floatformat:2 }}</td>
+                    <td>৳{{ item.total_price|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="total-section">
+            <div class="total-row">
+                <div>Subtotal:</div>
+                <div>৳{{ subtotal|floatformat:2 }}</div>
+            </div>
+            <div class="total-row">
+                <div>Shipping:</div>
+                <div>৳{{ shipping_cost|floatformat:2 }}</div>
+            </div>
+            {% if discount_amount %}
+            <div class="total-row">
+                <div>Discount:</div>
+                <div>-৳{{ discount_amount|floatformat:2 }}</div>
+            </div>
+            {% endif %}
+            <div class="total-row final">
+                <div>Total:</div>
+                <div>৳{{ total|floatformat:2 }}</div>
+            </div>
+        </div>
+        
+        <div class="receipt-footer">
+            <p>Thank you for your purchase!</p>
+            <p>For any questions regarding this receipt, please contact our customer service.</p>
+            <p>© {{ today|date:"Y" }} Your Company Name</p>
+        </div>
+    </div>
+</body>
+</html>

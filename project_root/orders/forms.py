@@ -14,6 +14,12 @@ class CheckoutForm(forms.Form):
     city = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'City'}))
     postal_code = forms.CharField(max_length=20, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Postal Code'}))
     
+    
+    shipping_location = forms.ChoiceField(
+    choices=[('inside_dhaka', 'Inside Dhaka (৳70)'), ('outside_dhaka', 'Outside Dhaka (৳120)')],
+    widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
+    initial='inside_dhaka'
+    )
     # Payment
     payment_method = forms.ChoiceField(
         choices=[('cod', 'Cash on Delivery'), ('bkash', 'bKash Payment')],

@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+     
+     
     # Local apps
     'core',
     'products',
@@ -58,6 +59,11 @@ INSTALLED_APPS = [
     'cart',
      'crm',
 ]
+X_FRAME_OPTIONS = 'SAMEORIGIN' 
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+] 
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

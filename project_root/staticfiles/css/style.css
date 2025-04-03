@@ -1,0 +1,414 @@
+/* static/css/style.css */
+/* General Styles */
+body {
+    font-family: 'Hind Siliguri', Arial, sans-serif;
+}
+
+/* Hero Section Styling */
+.hero-section {
+    margin-bottom: 3rem;
+}
+
+.hero-container {
+    height: 500px;
+    overflow: hidden;
+}
+
+.hero-image {
+    object-fit: cover;
+    height: 100%;
+    width: 100%;
+}
+
+.hero-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.hero-title {
+    margin-bottom: 1.5rem;
+}
+
+.year-text {
+    display: block;
+    font-size: 4.5rem;
+    font-weight: 700;
+    color: #0047cc;
+    line-height: 1;
+    text-shadow: 2px 2px 8px rgba(255,255,255,0.5);
+}
+
+.outfit-text {
+    display: block;
+    font-size: 4rem;
+    font-weight: 700;
+    color: #000;
+    -webkit-text-stroke: 2px #000;
+    -webkit-text-fill-color: white;
+    line-height: 1.2;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+}
+
+.hero-tagline {
+    margin-top: 1.5rem;
+}
+
+.category-title {
+    color: #0047cc;
+    font-size: 2.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    text-shadow: 1px 1px 3px rgba(255,255,255,0.8);
+}
+
+.arrows {
+    margin-left: 0.5rem;
+    font-weight: 300;
+}
+
+.category-description {
+    color: #333;
+    background-color: rgba(255,255,255,0.8);
+    padding: 0.5rem 1rem;
+    display: inline-block;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+    max-width: 350px;
+}
+
+.btn-explore {
+    padding: 0.6rem 2.5rem;
+    font-weight: 500;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    background-color: #0047cc;
+    border-color: #0047cc;
+}
+
+.btn-explore:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    background-color: #003db3;
+    border-color: #003db3;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 992px) {
+    .year-text {
+        font-size: 3.5rem;
+    }
+    
+    .outfit-text {
+        font-size: 3rem;
+    }
+    
+    .category-title {
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-container {
+        height: 400px;
+    }
+    
+    .year-text {
+        font-size: 3rem;
+    }
+    
+    .outfit-text {
+        font-size: 2.5rem;
+    }
+    
+    .category-title {
+        font-size: 1.5rem;
+    }
+    
+    .category-description {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-container {
+        height: 350px;
+    }
+    
+    .year-text {
+        font-size: 2.5rem;
+    }
+    
+    .outfit-text {
+        font-size: 2rem;
+    }
+    
+    .hero-content {
+        text-align: center;
+    }
+    
+    .hero-content .row {
+        justify-content: center;
+    }
+    
+    .category-description {
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+/* Category Cards */
+.category-card {
+    transition: transform 0.3s ease;
+    overflow: hidden;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.category-card img {
+    height: 250px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.category-card:hover img {
+    transform: scale(1.05);
+}
+
+/* Product Card Styling */
+.product-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.product-image-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.product-card img {
+    height: 220px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+    width: 100%;
+}
+
+.product-card:hover img {
+    transform: scale(1.05);
+}
+
+.wishlist-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: white;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    opacity: 0.9;
+    transition: all 0.3s ease;
+}
+
+.wishlist-btn:hover {
+    background-color: #f8f9fa;
+    transform: scale(1.1);
+}
+
+.wishlist-btn.active i {
+    color: #dc3545;
+    fill: #dc3545;
+}
+
+.product-title {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 10px;
+    height: 40px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* Add this to your style.css file for more button refinements */
+.product-card .product-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Reduce space between buttons */
+}
+
+.product-card .btn {
+    height: 32px; /* Set exact height */
+    padding: 0 8px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    text-transform: none; /* In case it's being capitalized */
+}
+
+/* Make the icons slightly smaller */
+.product-card .btn i {
+    font-size: 0.9em;
+    margin-right: 5px;
+}
+/* Promo Banner */
+.promo-banner .card-img {
+    height: 300px;
+    object-fit: cover;
+    filter: brightness(0.7);
+}
+
+.promo-banner .card-img-overlay {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Custom Bengali font */
+@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap');
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .hero-section .carousel-item {
+        height: 300px;
+    }
+    
+    .category-card img {
+        height: 200px;
+    }
+}
+
+/* Add these styles to your static/css/style.css file */
+
+/* Header card effects */
+header .card {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+}
+
+header .card:hover {
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+}
+
+/* Search bar styling */
+header form .form-control {
+    border-radius: 20px;
+    padding-left: 15px;
+}
+
+header form .btn {
+    border-radius: 20px;
+}
+
+/* Navigation link effects */
+header .nav-link {
+    position: relative;
+    padding: 0.5rem 1rem;
+}
+
+header .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background-color: #000;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+header .nav-link:hover::after {
+    width: 70%;
+}
+
+/* Category dropdown styles */
+.category-dropdown {
+    position: relative;
+}
+
+.category-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 250px;
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-top: none;
+    z-index: 1000;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.category-dropdown:hover .category-menu {
+    display: block;
+}
+
+.category-menu ul {
+    padding: 0;
+    margin: 0;
+}
+
+.category-menu li {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.category-menu li:last-child {
+    border-bottom: none;
+}
+
+.category-menu li a {
+    padding: 10px 15px;
+    color: #333;
+    text-decoration: none;
+    display: block;
+    transition: background-color 0.2s;
+}
+
+.category-menu li a:hover {
+    background-color: #f8f9fa;
+}
+
+.category-menu .bi-chevron-right {
+    font-size: 12px;
+    color: #666;
+}
+
+/* Change the color of the Shop By Category button */
+.category-dropdown .btn-link {
+    color: #000000;
+    font-weight: 600;
+}
+
+.category-dropdown .bi-list {
+    color: #000000;
+}
+/* Refinements to the category menu */
+.category-dropdown .category-menu {
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+}
+
+

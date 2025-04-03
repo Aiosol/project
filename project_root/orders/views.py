@@ -50,6 +50,7 @@ def checkout(request):
                 'address_line_2': form.cleaned_data['address_line_2'],
                 'city': form.cleaned_data['city'],
                 'postal_code': form.cleaned_data['postal_code'],
+                'shipping_location': form.cleaned_data['shipping_location'],
                 'payment_method': form.cleaned_data['payment_method'],
             }
             
@@ -92,6 +93,13 @@ def order_review(request):
     
     checkout_data = request.session['checkout_data']
     
+    # Calculate shipping cost based on location
+    shipping_location = checkout_data.get('shipping_location', 'inside_dhaka')
+    shipping_cost = 120 if shipping_location == 'outside_dhaka' else 70
+    
+    # Calculate total with shipping
+    total_with_shipping = float(cart.total_price) + shipping_cost
+
     if request.method == 'POST':
         # Get or create a "Pending" status
         from crm.models import OrderStatus
@@ -116,7 +124,7 @@ def order_review(request):
             billing_address=None,  # Or set to shipping_address if needed
             payment_method=checkout_data['payment_method'],
             payment_status='pending',
-            total_amount=cart.total_price,
+            total_amount=total_with_shipping,  # Update this line
             status=pending_status
         )
         order.save()
@@ -161,7 +169,9 @@ def order_review(request):
     return render(request, 'orders/review.html', {
         'title': 'Review Your Order',
         'cart': cart,
-        'checkout_data': checkout_data
+        'checkout_data': checkout_data,
+        'shipping_cost': shipping_cost,
+        'total_with_shipping': total_with_shipping  # Add this line
     })
 
 def confirmation(request, order_id):

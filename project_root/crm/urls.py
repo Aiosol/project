@@ -82,7 +82,7 @@ path('orders/bulk-ship/', views.bulk_ship_orders, name='bulk_ship_orders'),
 path('shipping/queue/', views.shipping_queue, name='shipping_queue'),
  
 path('api/orders/check-status/', views.check_status_api, name='check_status_api'),
-
+path('orders/<int:order_id>/receipt/', views.generate_receipt, name='generate_receipt'),
 
 
 ]

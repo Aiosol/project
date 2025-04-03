@@ -10,6 +10,10 @@
         <a href="{% url 'crm:order_list' %}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left"></i> Back to Orders
         </a>
+        <a href="{% url 'crm:generate_receipt' order.id %}" class="btn btn-outline-success">
+            <i class="fas fa-file-invoice"></i> Generate Receipt
+        </a>
+
         <button type="button" class="btn btn-outline-primary" onclick="window.print();">
             <i class="fas fa-print"></i> Print
         </button>
@@ -26,16 +30,18 @@
             <div class="card-body">
                 <div class="row mb-4">
                     <div class="col-md-6">
-                        <p><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y H:i" }}</p>
-                        <p><strong>Customer:</strong> {{ order.customer.user.get_full_name }}</p>
-                        <p><strong>Email:</strong> {{ order.customer.user.email }}</p>
-                        <p><strong>Phone:</strong> {{ order.customer.user.phone|default:"Not provided" }}</p>
+                         
+                            <p><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y H:i" }}</p>
+                            <p><strong>Customer:</strong> {{ customer_info.name }}</p>
+                            <p><strong>Email:</strong> {{ customer_info.email }}</p>
+                            <p><strong>Phone:</strong> {{ customer_info.phone }}</p>
+                         
                     </div>
                     <div class="col-md-6">
                         <p><strong>Payment Method:</strong> {{ order.payment_method }}</p>
                         <p><strong>Payment Status:</strong> {{ order.payment_status|default:"Unknown" }}</p>
                         <p><strong>Shipping Method:</strong> {{ order.shipping_method|default:"Standard Shipping" }}</p>
-                        <p><strong>Tracking Number:</strong> {{ order.tracking_number|default:"Not available" }}</p>
+                        <p><strong>Tracking Number:</strong> {{ order.tracking_code|default:"Not available" }}</p>
                     </div>
                 </div>
                 
